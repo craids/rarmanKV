@@ -2,6 +2,7 @@ package core;
 
 import java.util.concurrent.*;
 import java.util.Iterator;
+import java.util.Map;
 
 public class SimpleKV implements KeyValue {
 	
@@ -37,12 +38,13 @@ public class SimpleKV implements KeyValue {
     }
     
     private class KVPairIterator implements Iterator<KVPair> {
-    	private  Symbol startKey, endKey, currentKey;
-    	private final Iterator<Symbol> ksIterator;
+    	//private  Symbol startKey, endKey, currentKey;
+    	//private  Iterator<Symbol> ksIterator;
+    	private Iterator<Map.Entry<Symbol, Symbol>> ksIterator;
     	
         public KVPairIterator(Symbol start, Symbol end)
         {
-        	ksIterator = map.navigableKeySet().subSet(start, true, end, true).iterator();
+        	ksIterator = map.subMap(start, true, end, true).entrySet().iterator();
         	/*startKey = map.ceilingKey(start);
         	endKey = map.floorKey(end);
         	currentKey = startKey;*/
@@ -56,8 +58,8 @@ public class SimpleKV implements KeyValue {
 
         @Override
         public KVPair next() {
-            Symbol nextKey = ksIterator.next();
-            return new KVPair(nextKey.asArray(), map.get(nextKey).asArray());
+            Map.Entry<Symbol, Symbol> next = ksIterator.next();
+            return new KVPair(next.getKey().asArray(), next.getValue().asArray());
             /*
         	currentKey = map.higherKey(currentKey);
         	if(currentKey != null)
@@ -73,12 +75,12 @@ public class SimpleKV implements KeyValue {
 
     @Override
     public void beginTx() {
-	System.out.println("Done!");
+    	System.out.println("Done!");
     }
 
     @Override
     public void commit() {
-	System.out.println("Done!");
+    	System.out.println("Done!");
     }
 
 }
