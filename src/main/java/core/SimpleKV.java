@@ -18,13 +18,13 @@ public class SimpleKV implements KeyValue {
 
     @Override
     public void write(char[] key, char[] value) {
-    	System.out.println("Written!");
+    	// System.out.println("Written!");
     	map.put(new String(key), new String(value));
     }
 
     @Override
     public char[] read(char[] key) {
-		System.out.println("Read!");
+		// System.out.println("Read!");
 		String skey = new String(key);
 		if(map.containsKey(skey))
 			return map.get(new String(key)).toCharArray();
@@ -33,29 +33,37 @@ public class SimpleKV implements KeyValue {
 
     @Override
     public Iterator<KVPair> readRange(char[] startKey, char[] endKey) {
-		System.out.println("Read range!");
+		// System.out.println("Read range!");
 		String start = new String(startKey);
 		String end = new String(endKey);
-		return new KVPairIterator(start,end);
+		return new KVPairIterator(start, end);
     }
     
     private class KVPairIterator implements Iterator<KVPair> {
-    	private Iterator<String> ksIterator;
+    	private String startKey, endKey, currentKey;
     	
-        public KVPairIterator(String start,String end)
+        public KVPairIterator(String start, String end)
         {
-        	ksIterator = map.navigableKeySet().subSet(start, true, end, true).iterator();
+        	//ksIterator = map.navigableKeySet().subSet(start, true, end, true).iterator();
+        	startKey = map.ceilingKey(start);
+        	endKey = map.floorKey(end);
+        	currentKey = startKey;
         }
         
         @Override
         public boolean hasNext() {
-            return ksIterator.hasNext();
+            //return ksIterator.hasNext();
+        	return startKey != null && endKey != null && !currentKey.equals(endKey);
         }
 
         @Override
         public KVPair next() {
-            String nextKey = ksIterator.next();
-            return new KVPair(nextKey.toCharArray(), map.get(nextKey).toCharArray());
+            //String nextKey = ksIterator.next();
+            //return new KVPair(nextKey.toCharArray(), map.get(nextKey).toCharArray());
+        	currentKey = map.higherKey(currentKey);
+        	if(currentKey != null)
+        		return new KVPair(currentKey.toCharArray(), map.get(currentKey).toCharArray());
+        	return null;
         }
 
         @Override
