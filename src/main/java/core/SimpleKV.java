@@ -55,7 +55,7 @@ public class SimpleKV implements KeyValue {
         @Override
         public KVPair next() {
             String nextKey = ksIterator.next();
-            return new KVPair(nextKey, map.get(nextKey));
+            return new KVPair(nextKey.toCharArray(), map.get(nextKey).toCharArray());
         }
 
         @Override
