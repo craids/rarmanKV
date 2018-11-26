@@ -1,16 +1,14 @@
 package core;
 
-import java.util.TreeMap;
-import java.util.HashMap;
 import java.util.concurrent.*;
 import java.util.Iterator;
 
 public class SimpleKV implements KeyValue {
 	
-	private final TreeMap<Symbol,Symbol> map;
+	private final ConcurrentSkipListMap<Symbol,Symbol> map;
 	
     public SimpleKV() {
-    	this.map = new TreeMap<>();
+    	this.map = new ConcurrentSkipListMap<>();
     }
 
     @Override
