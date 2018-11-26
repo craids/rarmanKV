@@ -8,13 +8,9 @@ import java.util.Iterator;
 public class SimpleKV implements KeyValue {
 	
 	private final TreeMap<Symbol,Symbol> map;
-	private final HashMap<Symbol,Symbol> hMap;
-	private final ExecutorService execSvc;
 	
     public SimpleKV() {
     	this.map = new TreeMap<>();
-    	this.hMap = new HashMap<>();
-    	execSvc = Executors.newFixedThreadPool(8);
     }
 
     @Override
@@ -25,14 +21,13 @@ public class SimpleKV implements KeyValue {
     @Override
     public void write(char[] key, char[] value) {
     	// System.out.println("Written!");
-    	execSvc.submit(() -> map.put(new Symbol(key), new Symbol(value)));
-    	execSvc.submit(() -> hMap.put(new Symbol(key), new Symbol(value)));
+    	map.put(new Symbol(key), new Symbol(value));
     }
 
     @Override
     public char[] read(char[] key) {
 		// System.out.println("Read!");
-		return hMap.get(new Symbol(key)).asArray();
+		return map.get(new Symbol(key)).asArray();
     }
 
     @Override
