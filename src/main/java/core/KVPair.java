@@ -9,5 +9,10 @@ public class KVPair {
 	this.element1 = element1;
 	this.element2 = element2;
     }
-
+    
+    public KVPair(String elem1, String elem2)
+    {
+    	this.element1 = elem1.toCharArray();
+    	this.element2 = elem2.toCharArray();
+    }
 }
