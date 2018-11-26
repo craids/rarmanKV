@@ -5,13 +5,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class SimpleKV implements KeyValue {
 	
-	private final BTreeMap<Symbol,Symbol> map;
+	private final TreeMap<Symbol,Symbol> map;
 	
     public SimpleKV() {
-    	this.map = BTreeMap.create();
+    	this.map = new TreeMap<>();
     }
 
     @Override
@@ -41,28 +42,28 @@ public class SimpleKV implements KeyValue {
     }
     
     private class KVPairIterator implements Iterator<KVPair> {
-    	//private  Symbol startKey, endKey, currentKey;
+    	private Symbol endKey, currentKey;
     	//private  Iterator<Symbol> ksIterator;
-    	private Iterator<Map.Entry<Symbol, Symbol>> ksIterator;
+    	//private Iterator<Map.Entry<Symbol, Symbol>> ksIterator;
     	
         public KVPairIterator(Symbol start, Symbol end)
         {
-        	ksIterator = map.subMap(start, true, end, true).entrySet().iterator();
-        	/*startKey = map.ceilingKey(start);
+        	//ksIterator = map.subMap(start, true, end, true).entrySet().iterator();
+        	currentKey = map.ceilingKey(start);
         	endKey = map.floorKey(end);
-        	currentKey = startKey;*/
         }
         
         @Override
         public boolean hasNext() {
-            return ksIterator.hasNext();
-        	//return startKey != null && endKey != null && !currentKey.equals(endKey);
+            //return ksIterator.hasNext();
+        	return !currentKey.equals(endKey) && currentKey != null && endKey != null;
         }
 
         @Override
         public KVPair next() {
-            Map.Entry<Symbol, Symbol> next = ksIterator.next();
-            return new KVPair(next.getKey().asArray(), next.getValue().asArray());
+            //Map.Entry<Symbol, Symbol> next = ksIterator.next();
+        	currentKey = map.higherKey(currentKey);
+            return new KVPair(currentKey.asArray(), map.get(currentKey).asArray());
             /*
         	currentKey = map.higherKey(currentKey);
         	if(currentKey != null)
