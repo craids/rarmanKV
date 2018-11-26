@@ -42,28 +42,28 @@ public class SimpleKV implements KeyValue {
     }
     
     private class KVPairIterator implements Iterator<KVPair> {
-    	private Symbol endKey, currentKey;
+    	//private Symbol endKey, currentKey;
     	//private  Iterator<Symbol> ksIterator;
-    	//private Iterator<Map.Entry<Symbol, Symbol>> ksIterator;
+    	private Iterator<Map.Entry<Symbol, Symbol>> ksIterator;
     	
         public KVPairIterator(Symbol start, Symbol end)
         {
-        	//ksIterator = map.subMap(start, true, end, true).entrySet().iterator();
-        	currentKey = map.ceilingKey(start);
-        	endKey = map.floorKey(end);
+        	ksIterator = map.subMap(start, true, end, true).entrySet().iterator();
+        	//currentKey = map.ceilingKey(start);
+        	//endKey = map.floorKey(end);
         }
         
         @Override
         public boolean hasNext() {
-            //return ksIterator.hasNext();
-        	return !currentKey.equals(endKey) && currentKey != null && endKey != null;
+            return ksIterator.hasNext();
+        	//return !currentKey.equals(endKey) && currentKey != null && endKey != null;
         }
 
         @Override
         public KVPair next() {
-            //Map.Entry<Symbol, Symbol> next = ksIterator.next();
-        	currentKey = map.higherKey(currentKey);
-            return new KVPair(currentKey.asArray(), map.get(currentKey).asArray());
+            Map.Entry<Symbol, Symbol> next = ksIterator.next();
+        	//currentKey = map.higherKey(currentKey);
+            return new KVPair(next.getKey().asArray(), next.getValue().asArray());
             /*
         	currentKey = map.higherKey(currentKey);
         	if(currentKey != null)
