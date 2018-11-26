@@ -1,15 +1,20 @@
 package core;
 
 import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
 public class SimpleKV implements KeyValue {
 	
+	private static final ExecutorService es = Executors.newCachedThreadPool();
 	private final ConcurrentSkipListMap<Symbol,Symbol> map;
+	private final ArrayList<Symbol> keys;
 	
     public SimpleKV() {
     	this.map = new ConcurrentSkipListMap<>();
+    	this.keys = new ArrayList<>();
     }
 
     @Override
@@ -20,13 +25,19 @@ public class SimpleKV implements KeyValue {
     @Override
     public void write(char[] key, char[] value) {
     	// System.out.println("Written!");
-    	map.put(new Symbol(key), new Symbol(value));
+    	es.submit(() -> {
+	    	Symbol k = new Symbol(key);
+	    	map.put(k, new Symbol(value));
+	    	keys.add(k);
+	    	Collections.sort(keys);
+    	});
     }
 
     @Override
     public char[] read(char[] key) {
 		// System.out.println("Read!");
-		return map.get(new Symbol(key)).asArray();
+		//return map.get(new Symbol(key)).asArray();
+    	return map.get(new Symbol(key)).asArray();
     }
 
     @Override
