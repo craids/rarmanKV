@@ -5,7 +5,7 @@ import java.util.Iterator;
 
 public class SimpleKV implements KeyValue {
 	
-	private TreeMap<String,String> map;
+	private TreeMap<Symbol,Symbol> map;
 	
     public SimpleKV() {
     	this.map = new TreeMap<>();
@@ -19,30 +19,30 @@ public class SimpleKV implements KeyValue {
     @Override
     public void write(char[] key, char[] value) {
     	// System.out.println("Written!");
-    	map.put(new String(key), new String(value));
+    	map.put(new Symbol(key), new Symbol(value));
     }
 
     @Override
     public char[] read(char[] key) {
 		// System.out.println("Read!");
-		String skey = new String(key);
+		Symbol skey = new Symbol(key);
 		if(map.containsKey(skey))
-			return map.get(new String(key)).toCharArray();
+			return map.get(new Symbol(key)).asArray();
 		return null;
     }
 
     @Override
     public Iterator<KVPair> readRange(char[] startKey, char[] endKey) {
 		// System.out.println("Read range!");
-		String start = new String(startKey);
-		String end = new String(endKey);
+		Symbol start = new Symbol(startKey);
+		Symbol end = new Symbol(endKey);
 		return new KVPairIterator(start, end);
     }
     
     private class KVPairIterator implements Iterator<KVPair> {
-    	private String startKey, endKey, currentKey;
+    	private Symbol startKey, endKey, currentKey;
     	
-        public KVPairIterator(String start, String end)
+        public KVPairIterator(Symbol start, Symbol end)
         {
         	//ksIterator = map.navigableKeySet().subSet(start, true, end, true).iterator();
         	startKey = map.ceilingKey(start);
@@ -62,7 +62,7 @@ public class SimpleKV implements KeyValue {
             //return new KVPair(nextKey.toCharArray(), map.get(nextKey).toCharArray());
         	currentKey = map.higherKey(currentKey);
         	if(currentKey != null)
-        		return new KVPair(currentKey.toCharArray(), map.get(currentKey).toCharArray());
+        		return new KVPair(currentKey.asArray(), map.get(currentKey).asArray());
         	return null;
         }
 
