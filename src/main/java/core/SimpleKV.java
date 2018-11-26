@@ -25,9 +25,9 @@ public class SimpleKV implements KeyValue {
     @Override
     public void write(char[] key, char[] value) {
     	// System.out.println("Written!");
+    	Symbol k = new Symbol(key);
+    	map.put(k, new Symbol(value));
     	es.submit(() -> {
-	    	Symbol k = new Symbol(key);
-	    	map.put(k, new Symbol(value));
 	    	keys.add(k);
 	    	Collections.sort(keys);
     	});
