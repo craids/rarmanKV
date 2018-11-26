@@ -1,14 +1,20 @@
 package core;
 
 import java.util.TreeMap;
+import java.util.HashMap;
+import java.util.concurrent.*;
 import java.util.Iterator;
 
 public class SimpleKV implements KeyValue {
 	
-	private TreeMap<Symbol,Symbol> map;
+	private final TreeMap<Symbol,Symbol> map;
+	private final HashMap<Symbol,Symbol> hMap;
+	private final ExecutorService execSvc;
 	
     public SimpleKV() {
     	this.map = new TreeMap<>();
+    	this.hMap = new HashMap<>();
+    	execSvc = Executors.newFixedThreadPool(8);
     }
 
     @Override
@@ -19,16 +25,14 @@ public class SimpleKV implements KeyValue {
     @Override
     public void write(char[] key, char[] value) {
     	// System.out.println("Written!");
-    	map.put(new Symbol(key), new Symbol(value));
+    	execSvc.submit(() -> map.put(new Symbol(key), new Symbol(value)));
+    	execSvc.submit(() -> hMap.put(new Symbol(key), new Symbol(value)));
     }
 
     @Override
     public char[] read(char[] key) {
 		// System.out.println("Read!");
-		Symbol skey = new Symbol(key);
-		if(map.containsKey(skey))
-			return map.get(new Symbol(key)).asArray();
-		return null;
+		return hMap.get(new Symbol(key)).asArray();
     }
 
     @Override
