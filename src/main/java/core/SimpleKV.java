@@ -1,18 +1,18 @@
 package core;
 
-import java.util.concurrent.*;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
 public class SimpleKV implements KeyValue {
 	
-	private final TreeMap<Symbol,Symbol> map;
+	private final TreeMap<Symbol,Symbol> treemap;
+	private final HashMap<Symbol, Symbol> hashmap;
 	
     public SimpleKV() {
-    	this.map = new TreeMap<>();
+    	this.treemap = new TreeMap<>();
+    	this.hashmap = new HashMap<>();
     }
 
     @Override
@@ -23,14 +23,17 @@ public class SimpleKV implements KeyValue {
     @Override
     public void write(char[] key, char[] value) {
     	// System.out.println("Written!");
-    	map.put(new Symbol(key), new Symbol(value));
+    	Symbol sKey = new Symbol(key);
+    	Symbol sValue = new Symbol(value);
+    	treemap.put(sKey, sValue);
+    	hashmap.put(sKey, sValue);
     }
 
     @Override
     public char[] read(char[] key) {
 		// System.out.println("Read!");
 		//return map.get(new Symbol(key)).asArray();
-    	return map.get(new Symbol(key)).asArray();
+    	return hashmap.get(new Symbol(key)).asArray();
     }
 
     @Override
@@ -48,7 +51,7 @@ public class SimpleKV implements KeyValue {
     	
         public KVPairIterator(Symbol start, Symbol end)
         {
-        	ksIterator = map.subMap(start, true, end, true).entrySet().iterator();
+        	ksIterator = treemap.subMap(start, true, end, true).entrySet().iterator();
         	//currentKey = map.ceilingKey(start);
         	//endKey = map.floorKey(end);
         }
