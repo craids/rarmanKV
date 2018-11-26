@@ -8,13 +8,10 @@ import java.util.Map;
 
 public class SimpleKV implements KeyValue {
 	
-	private static final ExecutorService es = Executors.newCachedThreadPool();
-	private final ConcurrentSkipListMap<Symbol,Symbol> map;
-	private final ArrayList<Symbol> keys;
+	private final BTreeMap<Symbol,Symbol> map;
 	
     public SimpleKV() {
-    	this.map = new ConcurrentSkipListMap<>();
-    	this.keys = new ArrayList<>();
+    	this.map = BTreeMap.create();
     }
 
     @Override
@@ -25,12 +22,7 @@ public class SimpleKV implements KeyValue {
     @Override
     public void write(char[] key, char[] value) {
     	// System.out.println("Written!");
-    	Symbol k = new Symbol(key);
-    	map.put(k, new Symbol(value));
-    	es.submit(() -> {
-	    	keys.add(k);
-	    	Collections.sort(keys);
-    	});
+    	map.put(new Symbol(key), new Symbol(value));
     }
 
     @Override
