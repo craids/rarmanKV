@@ -47,7 +47,7 @@ public class SimpleKV implements KeyValue {
 		for(int i = 0; i < 1000000; i++) {
 			j++;
 		}
-		for (int k = j; k < 1000000; k++) {
+		for (int k = j; k < 1000000000; k++) {
 			System.out.println(k);
 		}
 		return new KVPairIterator(start, end);
