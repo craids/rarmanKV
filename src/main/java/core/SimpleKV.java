@@ -18,13 +18,11 @@ public class SimpleKV implements KeyValue {
 
     @Override
     public void write(char[] key, char[] value) {
-    	System.out.println("Written!");
     	map.put(new String(key), new String(value));
     }
 
     @Override
     public char[] read(char[] key) {
-		System.out.println("Read!");
 		String skey = new String(key);
 		//if(map.containsKey(skey))
 		return map.get(new String(key)).toCharArray();
@@ -33,7 +31,6 @@ public class SimpleKV implements KeyValue {
 
     @Override
     public Iterator<KVPair> readRange(char[] startKey, char[] endKey) {
-		System.out.println("Read range!");
 		String start = new String(startKey);
 		String end = new String(endKey);
 		return new KVPairIterator(start,end);
