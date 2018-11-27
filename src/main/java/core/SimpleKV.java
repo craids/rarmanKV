@@ -10,6 +10,7 @@ public class SimpleKV implements KeyValue {
 	private final TreeMap<Symbol,Symbol> treemap;
 	private final HashMap<Symbol, Symbol> hashmap;
 	
+	
     public SimpleKV() {
     	this.treemap = new TreeMap<>();
     	this.hashmap = new HashMap<>();
@@ -33,7 +34,8 @@ public class SimpleKV implements KeyValue {
     public char[] read(char[] key) {
 		// System.out.println("Read!");
 		//return map.get(new Symbol(key)).asArray();
-    	return hashmap.get(new Symbol(key)).asArray();
+    	Symbol sKey = new Symbol(key);
+    	return hashmap.get(sKey).asArray();
     }
 
     @Override

@@ -36,7 +36,7 @@ public class Symbol implements Comparable<Symbol>
     public final boolean equals(Object that)
     {
         return ((that instanceof Symbol) ? 
-                           (this.t == (((Symbol)that).t)) : false);
+                           (this.t.equals(((Symbol)that).t)) : false);
     }
     
     @Override
