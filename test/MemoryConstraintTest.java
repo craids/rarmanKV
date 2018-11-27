@@ -1,8 +1,13 @@
 
 
 import java.security.SecureRandom;
+import java.util.Iterator;
+
 import org.junit.jupiter.api.Test;
+
+import core.KVPair;
 import core.SimpleKV;
+import core.Symbol;
 import junit.framework.Assert;
 
 class MemoryConstraintTest {
@@ -12,6 +17,10 @@ class MemoryConstraintTest {
     	System.out.println("Test for using more than 1GB RAM");
         SimpleKV kv = new SimpleKV();
         long beginMem = getMemoryFootprint();
+        Symbol max = null;
+        Symbol min = null;
+        char[] maxA = new char[128];
+        char[] minA = new char[128];
         
         SecureRandom random = new SecureRandom();
         System.out.print("Begin writing...");
@@ -21,6 +30,22 @@ class MemoryConstraintTest {
             byte[] keyBytes = new byte[128];
             random.nextBytes(keyBytes);
             char[] chars = new String(keyBytes).toCharArray();  // 256 bytes (2byte/char, 128 chars)
+            Symbol key = new Symbol(new String(chars));
+            if(max == null) {
+            	max = key;
+            	maxA = chars;
+            } else if (key.compareTo(max) > 0) {
+            	max = key;
+            	maxA = chars;
+            }
+            if (min == null) {
+            	min = key;
+            	minA = chars;
+            } else if (key.compareTo(min) < 0) {
+            	min = key;
+            	minA = chars;
+            }
+            
         	kv.write(chars, chars); // write 512 bytes (key, value both 256)
         }
         
@@ -32,6 +57,18 @@ class MemoryConstraintTest {
         if (memDiff > MEMORY_LIMIT_IN_MB) {
             Assert.fail("Used too much RAM. KV test used " + memDiff + " MB of RAM, when limit was " + MEMORY_LIMIT_IN_MB);
         }
+        
+        Assert.assertNotNull(max);
+        Assert.assertNotNull(min);
+        
+        long start = System.currentTimeMillis();
+        Iterator<KVPair> range = kv.readRange(minA, maxA);
+        while(range.hasNext()) {
+        	range.next();
+        }
+        long end = System.currentTimeMillis();
+        System.out.println("ReadRange took " + (end - start));
+       
     }
 
     /**

@@ -28,9 +28,6 @@ public class SimpleKV implements KeyValue {
     	Symbol sValue = new Symbol(value);
     	treemap.put(sKey, sValue);
     	hashmap.put(sKey, sValue);
-    	for(int i = 0; i < 1000000; i++) {
-			System.out.println("hi");
-		}
     }
 
     @Override
