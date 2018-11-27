@@ -1,14 +1,17 @@
 package core;
 
-import java.util.TreeMap;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.TreeMap;
 
 public class SimpleKV implements KeyValue {
 	
-	private TreeMap<String,String> map;
+	private TreeMap<String,String> treemap;
+	private HashMap<String, String> hashmap;
 	
     public SimpleKV() {
-    	this.map = new TreeMap<>();
+    	this.treemap = new TreeMap<>();
+    	this.hashmap = new HashMap<>();
     }
 
     @Override
@@ -18,14 +21,17 @@ public class SimpleKV implements KeyValue {
 
     @Override
     public void write(char[] key, char[] value) {
-    	map.put(new String(key), new String(value));
+    	String sKey = new String(key);
+    	String sValue = new String(value);
+    	treemap.put(sKey, sValue);
+    	hashmap.put(sKey, sValue);
     }
 
     @Override
     public char[] read(char[] key) {
 		String skey = new String(key);
 		//if(map.containsKey(skey))
-		return map.get(new String(key)).toCharArray();
+		return hashmap.get(new String(key)).toCharArray();
 		//return null;
     }
 
@@ -41,7 +47,7 @@ public class SimpleKV implements KeyValue {
     	
         public KVPairIterator(String start,String end)
         {
-        	ksIterator = map.navigableKeySet().subSet(start, true, end, true).iterator();
+        	ksIterator = treemap.navigableKeySet().subSet(start, true, end, true).iterator();
         }
         
         @Override
@@ -52,7 +58,7 @@ public class SimpleKV implements KeyValue {
         @Override
         public KVPair next() {
             String nextKey = ksIterator.next();
-            return new KVPair(nextKey.toCharArray(), map.get(nextKey).toCharArray());
+            return new KVPair(nextKey.toCharArray(), treemap.get(nextKey).toCharArray());
         }
 
         @Override
