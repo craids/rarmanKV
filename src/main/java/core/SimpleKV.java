@@ -26,9 +26,9 @@ public class SimpleKV implements KeyValue {
     public char[] read(char[] key) {
 		System.out.println("Read!");
 		String skey = new String(key);
-		if(map.containsKey(skey))
-			return map.get(new String(key)).toCharArray();
-		return null;
+		//if(map.containsKey(skey))
+		return map.get(new String(key)).toCharArray();
+		//return null;
     }
 
     @Override
