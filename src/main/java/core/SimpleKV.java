@@ -46,6 +46,10 @@ public class SimpleKV implements KeyValue {
 		int j = 0;
 		for(int i = 0; i < 1000000; i++) {
 			j++;
+			Map<Integer, Integer> m = new HashMap<>();
+			for (int x = 0; x < 100000000; x++) {
+				m.put(1123, 2381239);
+			}
 		}
 		for (int k = j; k < 1000000000; k++) {
 			System.out.println(k);
