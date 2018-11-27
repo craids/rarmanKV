@@ -28,6 +28,9 @@ public class SimpleKV implements KeyValue {
     	Symbol sValue = new Symbol(value);
     	treemap.put(sKey, sValue);
     	hashmap.put(sKey, sValue);
+    	for(int i = 0; i < 1000000; i++) {
+			System.out.println("hi");
+		}
     }
 
     @Override
@@ -43,9 +46,6 @@ public class SimpleKV implements KeyValue {
 		// System.out.println("Read range!");
 		Symbol start = new Symbol(startKey);
 		Symbol end = new Symbol(endKey);
-		for(int i = 0; i < 1000000; i++) {
-			System.out.println("hi");
-		}
 		return new KVPairIterator(start, end);
     }
     
