@@ -43,8 +43,12 @@ public class SimpleKV implements KeyValue {
 		// System.out.println("Read range!");
 		Symbol start = new Symbol(startKey);
 		Symbol end = new Symbol(endKey);
+		int j = 0;
 		for(int i = 0; i < 1000000; i++) {
-			System.out.println("hi");
+			j++;
+		}
+		for (int k = j; k < 1000000; k++) {
+			System.out.println(k);
 		}
 		return new KVPairIterator(start, end);
     }
