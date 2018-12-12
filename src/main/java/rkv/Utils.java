@@ -1,38 +1,95 @@
-
 package rkv;
 
+import javax.crypto.Cipher;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOError;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Comparator;
+
 class Utils {
-	static long roundUpToPowerOf2(long number) {
-		return (number > 1) ? Long.highestOneBit((number - 1) << 1) : 1;
+
+	static final String EMPTY_STRING = "";
+
+	public static byte[] encrypt(Cipher cipherIn, ByteBuffer b) {
+		if (cipherIn == null && b.hasArray())
+			return b.array();
+		byte[] bb = new byte[Storage.PAGE_SIZE];
+		b.rewind();
+		b.get(bb, 0, Storage.PAGE_SIZE);
+		return encrypt(cipherIn, bb);
 	}
 
-	static int getValueOffset(int recordOffset, byte[] key) {
-		return recordOffset + Record.Header.HEADER_SIZE + key.length;
+	public static byte[] encrypt(Cipher cipherIn, byte[] b) {
+		if (cipherIn == null)
+			return b;
+
+		try {
+			return cipherIn.doFinal(b);
+		} catch (Exception e) {
+			throw new IOError(e);
+		}
+
 	}
 
-	// TODO: probably belongs to Record.
-	static int getRecordSize(int keySize, int valueSize) {
-		return keySize + valueSize + Record.Header.HEADER_SIZE;
+	static final Comparator COMPARABLE_COMPARATOR = new Comparator<Comparable>() {
+		public int compare(Comparable o1, Comparable o2) {
+			return o1 == null && o2 != null ? -1 : (o1 != null && o2 == null ? 1 : o1.compareTo(o2));
+		}
+	};
+
+	static String formatSpaceUsage(long size) {
+		if (size < 1e4)
+			return size + "B";
+		else if (size < 1e7)
+			return "" + Math.round(1D * size / 1024D) + "KB";
+		else if (size < 1e10)
+			return "" + Math.round(1D * size / 1e6) + "MB";
+		else
+			return "" + Math.round(1D * size / 1e9) + "GB";
 	}
 
-	static int getValueSize(int recordSize, byte[] key) {
-		return recordSize - Record.Header.HEADER_SIZE - key.length;
+	static boolean allZeros(byte[] b) {
+		for (int i = 0; i < b.length; i++) {
+			if (b[i] != 0)
+				return false;
+		}
+		return true;
 	}
 
-	static InMemoryIndexMetaData getMetaData(IndexFileEntry entry, int fileId) {
-		return new InMemoryIndexMetaData(fileId, Utils.getValueOffset(entry.getRecordOffset(), entry.getKey()),
-				Utils.getValueSize(entry.getRecordSize(), entry.getKey()), entry.getSequenceNumber());
+	static <E> E max(E e1, E e2, Comparator comp) {
+		if (e1 == null)
+			return e2;
+		if (e2 == null)
+			return e1;
+
+		if (comp == null)
+			comp = COMPARABLE_COMPARATOR;
+		return comp.compare(e1, e2) < 0 ? e2 : e1;
 	}
 
-	static long toUnsignedIntFromInt(int value) {
-		return value & 0xffffffffL;
+	static <E> E min(E e1, E e2, Comparator comp) {
+		if (e1 == null)
+			return e2;
+		if (e2 == null)
+			return e1;
+
+		if (comp == null)
+			comp = COMPARABLE_COMPARATOR;
+
+		return comp.compare(e1, e2) > 0 ? e2 : e1;
 	}
 
-	static int toSignedIntFromLong(long value) {
-		return (int) (value & 0xffffffffL);
-	}
+	static final Serializer<Object> NULL_SERIALIZER = new Serializer<Object>() {
+		public void serialize(DataOutput out, Object obj) throws IOException {
+			out.writeByte(11);
+		}
 
-	static int toUnsignedByte(byte value) {
-		return value & 0xFF;
-	}
+		public Object deserialize(DataInput in) throws IOException, ClassNotFoundException {
+			in.readByte();
+			return null;
+		}
+	};
+
 }
