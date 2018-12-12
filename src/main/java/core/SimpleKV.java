@@ -1,14 +1,10 @@
 package core;
 
-import java.util.TreeMap;
 import java.util.stream.Stream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -52,9 +48,11 @@ public class SimpleKV implements KeyValue {
 	@Override
 	public Iterator<KVPair> readRange(char[] startKey, char[] endKey) {
 		return null;
-		/*String start = new String(startKey);
+		/*
+		String start = new String(startKey);
 		String end = new String(endKey);
-		return new KVPairIterator(start, end);*/
+		return new KVPairIterator(start, end);
+		*/
 	}
 
 	@Override
@@ -89,24 +87,14 @@ public class SimpleKV implements KeyValue {
 		}
 		return false;
 	}
+	
 	private char[] readKV(char[] key)
 	{
 		try {
 			String fname = "rkv"+new String(key);
 			File f = new File(fname);
 			if(f.exists())
-			{
-				StringBuffer sb = new StringBuffer();
-				try (Stream<String> stream = Files.lines(Paths.get(fname), StandardCharsets.UTF_8))
-			    {
-			        stream.forEach(s -> sb.append(s));
-			    }
-			    catch (IOException e)
-			    {
-			        e.printStackTrace();
-			    }
-				return sb.toString().toCharArray();
-			}
+				return new String(Files.readAllBytes(Paths.get(fname)), StandardCharsets.UTF_8).toCharArray();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
