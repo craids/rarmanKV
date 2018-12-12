@@ -2,29 +2,31 @@ package core;
 
 import rkv.*;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Iterator;
-
-import net.openhft.chronicle.map.*;
 
 public class SimpleKV implements KeyValue {
 	
 	private RKVDB db;
-	private ChronicleMap<String, String> map;
 	
 	public SimpleKV() {
-		ChronicleMapBuilder<String, String> mapBuilder =
-			    ChronicleMapBuilder.of(String.class, String.class)
-			        .name("rkvdb")
-			        .entries(500_000);
-			try {
-				map =
-				    mapBuilder.createOrRecoverPersistedTo(new File("rkv.db"));
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+		RKVDBOptions options = new RKVDBOptions();
+        options.setMaxFileSize(1024 * 1024 * 1024);
+        options.setFlushDataSizeBytes(10 * 1024 * 1024);
+        options.setCompactionThresholdPerFile(0.7);
+        options.setCompactionJobRate(50 * 1024 * 1024);
+        options.setNumberOfRecords(100_000_000);
+        options.setCleanUpTombstonesDuringOpen(true);
+        options.setCleanUpInMemoryIndexOnClose(false);
+        options.setUseMemoryPool(true);
+        options.setMemoryPoolChunkSize(2 * 1024 * 1024);
+        options.setFixedKeySize(64);
+
+        String directory = "rkvdbf";
+        try {
+			db = RKVDB.open(directory, options);
+		} catch (RKVDBException e) {
+			e.printStackTrace();
+		}
 	}
 	
 
@@ -35,12 +37,21 @@ public class SimpleKV implements KeyValue {
 
 	@Override
 	public void write(char[] key, char[] value) {
-		map.put(new String(key), new String(value));
+		try {
+			db.put(new String(key).getBytes(), new String(value).getBytes());
+		} catch (RKVDBException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
 	public char[] read(char[] key) {
-		return map.get(new String(key)).toCharArray();
+		try {
+			return new String(db.get(new String(key).getBytes())).toCharArray();
+		} catch (RKVDBException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	@Override
@@ -55,6 +66,5 @@ public class SimpleKV implements KeyValue {
 
 	@Override
 	public void commit() {
-		
 	}
 }
