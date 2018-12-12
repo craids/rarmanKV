@@ -1,32 +1,34 @@
 package core;
 
 import java.util.TreeMap;
+import java.util.stream.Stream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class SimpleKV implements KeyValue {
 
 	private final String storeFile = "rkv.dat";
-	private TreeMap<String, String> map;
+	private final String logFile = "rkv.log";
 	private boolean hasDirtyData = true;
+	private HashMap<char[], char[]> map;
 
 	@SuppressWarnings("unchecked")
 	public SimpleKV() {
-		File mapstore = new File("rkv.dat");
-		if (mapstore.exists()) {
-			try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(mapstore))) {
-				map = (TreeMap<String, String>) ois.readObject();
-			} catch (Exception ex) {
-				this.map = new TreeMap<>();
-				return;
-			}
-		} else
-			this.map = new TreeMap<>();
+		map = new HashMap<>();
 	}
 
 	@Override
@@ -36,56 +38,35 @@ public class SimpleKV implements KeyValue {
 
 	@Override
 	public void write(char[] key, char[] value) {
-		map.put(new String(key), new String(value));
-		hasDirtyData = true;
+		map.put(key, value);
 	}
 
 	@Override
 	public char[] read(char[] key) {
-		return map.get(new String(key)).toCharArray();
+		if(map.containsKey(key))
+			return map.get(key);
+		else
+			return readKV(key);
 	}
 
 	@Override
 	public Iterator<KVPair> readRange(char[] startKey, char[] endKey) {
-		String start = new String(startKey);
+		return null;
+		/*String start = new String(startKey);
 		String end = new String(endKey);
-		return new KVPairIterator(start, end);
+		return new KVPairIterator(start, end);*/
 	}
-
-	private class KVPairIterator implements Iterator<KVPair> {
-		private Iterator<String> ksIterator;
-
-		public KVPairIterator(String start, String end) {
-			ksIterator = map.navigableKeySet().subSet(start, true, end, true).iterator();
-		}
-
-		@Override
-		public boolean hasNext() {
-			return ksIterator.hasNext();
-		}
-
-		@Override
-		public KVPair next() {
-			String nextKey = ksIterator.next();
-			return new KVPair(nextKey.toCharArray(), map.get(nextKey).toCharArray());
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-	};
 
 	@Override
 	public void beginTx() {
-		System.out.println("Done!");
+		map.clear();
 	}
 
 	@Override
 	public void commit() {
-		if(hasDirtyData)
-			writeToStore();
-		hasDirtyData = false;
+		for(Map.Entry<char[],char[]> es : map.entrySet())
+			writeKV(es.getKey(), es.getValue());
+		map.clear();
 	}
 
 	public void writeToStore() {
@@ -95,5 +76,54 @@ public class SimpleKV implements KeyValue {
 			ex.printStackTrace();
 		}
 	}
+	
+	private boolean writeKV(char[] key, char[] value)
+	{
+		try {
+			FileWriter fw = new FileWriter(new File("rkv"+new String(key)));
+			fw.write(value, 0, value.length);
+			fw.close();
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+	private char[] readKV(char[] key)
+	{
+		try {
+			String fname = "rkv"+new String(key);
+			File f = new File(fname);
+			if(f.exists())
+			{
+				StringBuffer sb = new StringBuffer();
+				try (Stream<String> stream = Files.lines(Paths.get(fname), StandardCharsets.UTF_8))
+			    {
+			        stream.forEach(s -> sb.append(s));
+			    }
+			    catch (IOException e)
+			    {
+			        e.printStackTrace();
+			    }
+				return sb.toString().toCharArray();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 
+	private List<String> readLines(String filePath)
+	{
+	    List<String> lines = new ArrayList<String>();
+	    try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.UTF_8))
+	    {
+	        stream.forEach(s -> lines.add(s));
+	    }
+	    catch (IOException e)
+	    {
+	        e.printStackTrace();
+	    }
+	    return lines;
+	}
 }
