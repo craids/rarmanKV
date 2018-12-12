@@ -5,6 +5,7 @@ import rkv.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.SortedMap;
+import java.io.IOException;
 import java.net.*;
 import java.nio.*;
 import java.nio.channels.SocketChannel;
@@ -50,14 +51,15 @@ public class SimpleKV implements KeyValue {
 			buffer.clear();
  
 			// wait for 2 seconds before sending next message
-			Thread.sleep(2000);
+			
 		}
 		crunchifyClient.close();
 		}
-		catch(Exception e)
+		catch(IOException e)
 		{
-			
+			System.exit(-1);
 		}
+		System.exit(0);
 	}
 	
 
