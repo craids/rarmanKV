@@ -2,31 +2,31 @@ package core;
 
 import rkv.*;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.SortedMap;
-import java.io.IOException;
-import java.net.*;
-import java.nio.*;
-import java.nio.channels.SocketChannel;
 
 public class SimpleKV implements KeyValue {
-
-	private final String dbFileName = "rkv.dat";
-	private final String collectionName = "rkvstore";
-	private final SortedMap<String, char[]> map;
-	private final DB db;
+	
+	private RKVDB db;
 	
 	public SimpleKV() {
-		db = DBMaker.openFile(dbFileName)
-				.disableLocking()
-				.disableTransactions()
-				.useRandomAccessFile()
-				.enableMRUCache()
-				.setMRUCacheSize(8192)
-				.closeOnExit()
-				.make();
-		map = db.createTreeMap(collectionName);
+		RKVDBOptions options = new RKVDBOptions();
+        options.setMaxFileSize(1024 * 1024 * 1024);
+        options.setFlushDataSizeBytes(10 * 1024 * 1024);
+        options.setCompactionThresholdPerFile(0.7);
+        options.setCompactionJobRate(50 * 1024 * 1024);
+        options.setNumberOfRecords(100_000_000);
+        options.setCleanUpTombstonesDuringOpen(true);
+        options.setCleanUpInMemoryIndexOnClose(false);
+        options.setUseMemoryPool(true);
+        options.setMemoryPoolChunkSize(2 * 1024 * 1024);
+        options.setFixedKeySize(64);
+
+        String directory = "rkvdbf";
+        try {
+			db = RKVDB.open(directory, options);
+		} catch (RKVDBException e) {
+			e.printStackTrace();
+		}
 	}
 	
 
@@ -37,12 +37,21 @@ public class SimpleKV implements KeyValue {
 
 	@Override
 	public void write(char[] key, char[] value) {
-		map.put(new String(key), value);
+		try {
+			db.put(new String(key).getBytes(), new String(value).getBytes());
+		} catch (RKVDBException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
 	public char[] read(char[] key) {
-		return map.get(new String(key));
+		try {
+			return new String(db.get(new String(key).getBytes())).toCharArray();
+		} catch (RKVDBException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	@Override
@@ -57,6 +66,5 @@ public class SimpleKV implements KeyValue {
 
 	@Override
 	public void commit() {
-		db.commit();
 	}
 }
