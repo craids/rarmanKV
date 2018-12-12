@@ -13,6 +13,7 @@ public class SimpleKV implements KeyValue {
 
 	private final String storeFile = "rkv.dat";
 	private TreeMap<String, String> map;
+	private boolean hasDirtyData = true;
 
 	@SuppressWarnings("unchecked")
 	public SimpleKV() {
@@ -36,6 +37,7 @@ public class SimpleKV implements KeyValue {
 	@Override
 	public void write(char[] key, char[] value) {
 		map.put(new String(key), new String(value));
+		hasDirtyData = true;
 	}
 
 	@Override
@@ -81,7 +83,9 @@ public class SimpleKV implements KeyValue {
 
 	@Override
 	public void commit() {
-		writeToStore();
+		if(hasDirtyData)
+			writeToStore();
+		hasDirtyData = false;
 	}
 
 	public void writeToStore() {
