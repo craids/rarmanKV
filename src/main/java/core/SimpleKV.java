@@ -15,10 +15,13 @@ public class SimpleKV implements KeyValue {
 	public SimpleKV() {
 		db = DBMaker.openFile(dbFileName)
 				.disableLocking()
+				.disableTransactions()
 				.enableHardCache()
+				.closeOnExit()
 				.make();
 		map = db.createTreeMap(collectionName);
 	}
+	
 
 	@Override
 	public SimpleKV initAndMakeStore(String path) {
