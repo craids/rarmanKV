@@ -34,12 +34,7 @@ class MemoryConstraintTest {
         }
     }
 
-    /**
-     * This method taken from simpledb.SystemTestUtil file
-     * 
-     * Returns number of bytes of RAM used by JVM after calling System.gc many times.
-     * @return amount of RAM (in bytes) used by JVM
-     */
+    
     private long getMemoryFootprint() {
         // Call System.gc in a loop until it stops freeing memory. This is
         // still no guarantee that all the memory is freed, since System.gc is
