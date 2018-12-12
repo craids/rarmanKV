@@ -3,18 +3,21 @@ package core;
 import rkv.*;
 
 import java.util.Iterator;
-import java.util.concurrent.ConcurrentMap;
+import java.util.SortedMap;
 
 public class SimpleKV implements KeyValue {
 
 	private final String dbFileName = "rkv.dat";
 	private final String collectionName = "rkvstore";
-	private final ConcurrentMap<char[], char[]> map;
+	private final SortedMap<String, char[]> map;
 	private final DB db;
 	
 	public SimpleKV() {
-		db = DBMaker.openFile(dbFileName).make();
-		map = db.createHashMap(collectionName);
+		db = DBMaker.openFile(dbFileName)
+				.disableLocking()
+				.enableHardCache()
+				.make();
+		map = db.createTreeMap(collectionName);
 	}
 
 	@Override
@@ -24,12 +27,12 @@ public class SimpleKV implements KeyValue {
 
 	@Override
 	public void write(char[] key, char[] value) {
-		map.put(key, value);
+		map.put(new String(key), value);
 	}
 
 	@Override
 	public char[] read(char[] key) {
-		return map.get(key);
+		return map.get(new String(key));
 	}
 
 	@Override
