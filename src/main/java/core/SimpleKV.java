@@ -35,8 +35,8 @@ public class SimpleKV implements KeyValue {
 				e.printStackTrace();
 			}
 		}
-		for(Future f : workload)
-			while(!f.isDone());
+		//for(Future f : workload)
+		//	while(!f.isDone());
 	}
 
 	@Override
@@ -57,7 +57,7 @@ public class SimpleKV implements KeyValue {
 					e.printStackTrace();
 				}
 			}});
-		while(!w1.isDone() || !w2.isDone());
+		//while(!w1.isDone() || !w2.isDone());
 	}
 
 	@Override
