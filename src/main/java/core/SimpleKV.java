@@ -3,6 +3,7 @@ package core;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Iterator;
 import java.util.concurrent.*;
 
@@ -14,27 +15,34 @@ public class SimpleKV implements KeyValue {
 	private final String storeName = "rkv.dat";
 	private boolean hasChanged = false;
 	private ExecutorService executor;
+	private ObjectOutputStream oos;
 
 	@SuppressWarnings("unchecked")
 	public SimpleKV() {
 		executor = Executors.newCachedThreadPool();
-		File dir = new File(".");
-		File [] files = dir.listFiles(new FilenameFilter() {
-		    @Override
-		    public boolean accept(File dir, String name) {
-		        return name.startsWith("rkv-");
-		    }
-		});
 		map = new TrieMap<char[], char[]>();
-		ArrayList<Future> workload = new ArrayList<>();
-		for (File f : files) {
-		    try {
-		    	Future fw = executor.submit(() -> map.put(f.getName().substring(4).toCharArray(), Files.readString(f.toPath()).toCharArray()));
-		    	workload.add(fw);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+		try {
+		FileInputStream fis = new FileInputStream(new File(storeName));
+		ObjectInputStream ois = new ObjectInputStream(fis);
+		Object o = null;
+		
+		while((o = ois.readObject()) != null)
+		{
+			KVPair kp = (KVPair)o;
+			map.put(kp.element1, kp.element2);
 		}
+		ois.close();
+		fis.close();
+		
+		FileOutputStream fos = new FileOutputStream(new File(storeName), true);
+		oos = new ObjectOutputStream(fos);
+		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		
 		//for(Future f : workload)
 		//	while(!f.isDone());
 	}
@@ -46,18 +54,14 @@ public class SimpleKV implements KeyValue {
 
 	@Override
 	public void write(char[] key, char[] value) {
-		Future w1 = executor.submit(() -> map.put(key, value));
-		Future w2 = executor.submit(new Runnable() {
-			public void run() {
-				try {
-					FileWriter fw = new FileWriter(new File("rkv-".concat(new String(key))));
-					fw.write(value);
-					fw.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}});
-		//while(!w1.isDone() || !w2.isDone());
+		map.put(key, value);
+		try {
+		oos.writeObject(new KVPair(key, value));
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	@Override
