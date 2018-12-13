@@ -1,34 +1,30 @@
 package core;
 
-import rkv.*;
-
-import java.util.ArrayList;
+import java.io.*;
 import java.util.Iterator;
-import java.util.SortedMap;
-import java.io.IOException;
-import java.net.*;
-import java.nio.*;
-import java.nio.channels.SocketChannel;
 
 public class SimpleKV implements KeyValue {
 
-	private final String dbFileName = "rkv.dat";
-	private final String collectionName = "rkvstore";
-	private final SortedMap<String, char[]> map;
-	private final DB db;
-	
+	private Trie<String> pt;
+	private final String storeName = "rkv.dat";
+
+	@SuppressWarnings("unchecked")
 	public SimpleKV() {
-		db = DBMaker.openFile(dbFileName)
-				.disableLocking()
-				.disableTransactions()
-				.useRandomAccessFile()
-				.enableMRUCache()
-				.setMRUCacheSize(8192)
-				.closeOnExit()
-				.make();
-		map = db.createTreeMap(collectionName);
+		File f = new File(storeName);
+		if (f.exists()) {
+			try {
+				FileInputStream fis = new FileInputStream(storeName);
+				ObjectInputStream ois = new ObjectInputStream(fis);
+				pt = (Trie<String>) ois.readObject();
+				ois.close();
+				fis.close();
+				return;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		pt = new Trie<String>();
 	}
-	
 
 	@Override
 	public SimpleKV initAndMakeStore(String path) {
@@ -37,12 +33,12 @@ public class SimpleKV implements KeyValue {
 
 	@Override
 	public void write(char[] key, char[] value) {
-		map.put(new String(key), value);
+		pt.put(new String(key), new String(value));
 	}
 
 	@Override
 	public char[] read(char[] key) {
-		return map.get(new String(key));
+		return pt.get(new String(key)).toCharArray();
 	}
 
 	@Override
@@ -57,6 +53,14 @@ public class SimpleKV implements KeyValue {
 
 	@Override
 	public void commit() {
-		db.commit();
+		try {
+			FileOutputStream fos = new FileOutputStream(storeName);
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+			oos.writeObject(pt);
+			oos.close();
+			fos.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }
