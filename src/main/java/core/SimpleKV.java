@@ -2,16 +2,22 @@ package core;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.concurrent.*;
+
+import rkv.*;
 
 public class SimpleKV implements KeyValue {
 
-	private Trie<String> pt;
+	private TrieMap<char[], char[]> map;
 	private final String storeName = "rkv.dat";
 	private boolean hasChanged = false;
+	private ExecutorService executor;
 
 	@SuppressWarnings("unchecked")
 	public SimpleKV() {
+		executor = Executors.newCachedThreadPool();
 		File dir = new File(".");
 		File [] files = dir.listFiles(new FilenameFilter() {
 		    @Override
@@ -19,14 +25,18 @@ public class SimpleKV implements KeyValue {
 		        return name.startsWith("rkv-");
 		    }
 		});
-		pt = new Trie<String>();
+		map = new TrieMap<char[], char[]>();
+		ArrayList<Future> workload = new ArrayList<>();
 		for (File f : files) {
 		    try {
-				pt.put(f.getName().substring(4), new String(Files.readAllBytes(f.toPath())));
+		    	Future fw = executor.submit(() -> map.put(f.getName().substring(4).toCharArray(), Files.readString(f.toPath()).toCharArray()));
+		    	workload.add(fw);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
+		for(Future f : workload)
+			while(!f.isDone());
 	}
 
 	@Override
@@ -36,7 +46,9 @@ public class SimpleKV implements KeyValue {
 
 	@Override
 	public void write(char[] key, char[] value) {
-		pt.put(new String(key), new String(value));
+		Future w1 = executor.submit(() -> map.put(key, value));
+		Future w2 = executor.submit(new Runnable() {
+			public void run() {
 				try {
 					FileWriter fw = new FileWriter(new File("rkv-".concat(new String(key))));
 					fw.write(value);
@@ -44,11 +56,13 @@ public class SimpleKV implements KeyValue {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
+			}});
+		while(!w1.isDone() || !w2.isDone());
 	}
 
 	@Override
 	public char[] read(char[] key) {
-		return pt.get(new String(key)).toCharArray();
+		return map.get(key);
 	}
 
 	@Override
