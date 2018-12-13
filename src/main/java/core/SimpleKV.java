@@ -1,7 +1,7 @@
 package core;
 
 import java.io.*;
-import java.nio.file.Files;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
@@ -12,7 +12,7 @@ import rkv.*;
 
 public class SimpleKV implements KeyValue {
 
-	private HashMap<char[], char[]> map;
+	private MRUMap<String, String> map;
 	private final String storeName = "rkv.dat";
 	private boolean hasChanged = false;
 	private ExecutorService executor;
@@ -20,26 +20,7 @@ public class SimpleKV implements KeyValue {
 
 	@SuppressWarnings("unchecked")
 	public SimpleKV() {
-		executor = Executors.newCachedThreadPool();
-		map = new HashMap<char[], char[]>();
-		try {
-			FileInputStream fis = new FileInputStream(new File(storeName));
-			ObjectInputStream ois = new ObjectInputStream(fis);
-			Object o = null;
-
-			while ((o = ois.readObject()) != null) {
-				KVPair kp = (KVPair) o;
-				map.put(kp.element1, kp.element2);
-			}
-			ois.close();
-			fis.close();
-
-			FileOutputStream fos = new FileOutputStream(new File(storeName), true);
-			oos = new ObjectOutputStream(fos);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		map = new MRUMap<String, String>(2048);
 	}
 
 	@Override
@@ -49,19 +30,35 @@ public class SimpleKV implements KeyValue {
 
 	@Override
 	public void write(char[] key, char[] value) {
-		if(map.containsKey(key) && map.get(key) == value)
-			return;
-		map.put(key, value);
-		try {
-			oos.writeObject(new KVPair(key, value));
-		} catch (Exception e) {
-			e.printStackTrace();
+		try{
+			String skey = new String(key);
+			BufferedWriter bw = Files.newBufferedWriter(new File(new String(key)).toPath());
+			bw.write(value);
+			map.put(skey, new String(value));
+		}
+		catch(Exception ex)
+		{
+			ex.printStackTrace();
 		}
 	}
 
 	@Override
 	public char[] read(char[] key) {
-		return map.get(key);
+		String skey = new String(key);
+		if(map.containsKey(skey))
+		{
+			return map.get(skey).toCharArray();
+		}
+		try
+		{
+			String s = Files.readString(new File(new String(key)).toPath());
+			map.put(skey, s);
+			return s.toCharArray();
+		}
+		catch(Exception ex) {
+			return null;
+		}
+		//return map.get(key);
 	}
 
 	@Override
