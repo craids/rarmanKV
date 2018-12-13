@@ -49,6 +49,8 @@ public class SimpleKV implements KeyValue {
 
 	@Override
 	public void write(char[] key, char[] value) {
+		if(map.containsKey(key) && map.get(key) == value)
+			return;
 		map.put(key, value);
 		try {
 			oos.writeObject(new KVPair(key, value));
