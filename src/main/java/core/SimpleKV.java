@@ -4,6 +4,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.*;
 
@@ -11,7 +12,7 @@ import rkv.*;
 
 public class SimpleKV implements KeyValue {
 
-	private TrieMap<char[], char[]> map;
+	private HashMap<char[], char[]> map;
 	private final String storeName = "rkv.dat";
 	private boolean hasChanged = false;
 	private ExecutorService executor;
@@ -20,31 +21,25 @@ public class SimpleKV implements KeyValue {
 	@SuppressWarnings("unchecked")
 	public SimpleKV() {
 		executor = Executors.newCachedThreadPool();
-		map = new TrieMap<char[], char[]>();
+		map = new HashMap<char[], char[]>();
 		try {
-		FileInputStream fis = new FileInputStream(new File(storeName));
-		ObjectInputStream ois = new ObjectInputStream(fis);
-		Object o = null;
-		
-		while((o = ois.readObject()) != null)
-		{
-			KVPair kp = (KVPair)o;
-			map.put(kp.element1, kp.element2);
-		}
-		ois.close();
-		fis.close();
-		
-		FileOutputStream fos = new FileOutputStream(new File(storeName), true);
-		oos = new ObjectOutputStream(fos);
-		
-		}
-		catch(Exception e)
-		{
+			FileInputStream fis = new FileInputStream(new File(storeName));
+			ObjectInputStream ois = new ObjectInputStream(fis);
+			Object o = null;
+
+			while ((o = ois.readObject()) != null) {
+				KVPair kp = (KVPair) o;
+				map.put(kp.element1, kp.element2);
+			}
+			ois.close();
+			fis.close();
+
+			FileOutputStream fos = new FileOutputStream(new File(storeName), true);
+			oos = new ObjectOutputStream(fos);
+
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		//for(Future f : workload)
-		//	while(!f.isDone());
 	}
 
 	@Override
@@ -56,10 +51,8 @@ public class SimpleKV implements KeyValue {
 	public void write(char[] key, char[] value) {
 		map.put(key, value);
 		try {
-		oos.writeObject(new KVPair(key, value));
-		}
-		catch(Exception e)
-		{
+			oos.writeObject(new KVPair(key, value));
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
