@@ -32,6 +32,11 @@ public class SimpleKV implements KeyValue {
 		}
     	return new SimpleKV();
     }
+    
+    // WARNING!!! use only in testing, will wipe the DB file
+    public void reset() {
+    	if (file != null) file.delete();
+    }
 
     @Override
     public void write(char[] key, char[] value) {
