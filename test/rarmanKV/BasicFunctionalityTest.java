@@ -42,4 +42,17 @@ class BasicFunctionalityTest {
 			assertArrayEquals(chars, actual);
 		}
 	}
+	
+	@Test
+	void testOverwrite() {
+		char[] key = "hi".toCharArray();
+		char[] val1 = "bye".toCharArray();
+		char[] val2 = "hello".toCharArray();
+		kv.write(key, val1);
+		char[] actual1 = kv.read(key);
+		assertArrayEquals(val1, actual1);
+		kv.write(key, val2);
+		char[] actual2 = kv.read(key);
+		assertArrayEquals(val2, actual2);
+	}
 }
