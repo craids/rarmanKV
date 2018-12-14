@@ -6,6 +6,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.util.*;
 
 public class Page {
@@ -58,15 +59,48 @@ public class Page {
 	
 	// get byte-ified data of this page to be written to disk
 	public byte[] getPageData() {
-		int len = SimpleKV.PAGE_SIZE;
+		byte[] pLen = null;
+		byte[] kLen = null;
+		byte[] vLen = null;
+ 		int len = SimpleKV.PAGE_SIZE;
+		int offset = 0;
 		ByteArrayOutputStream baos = new ByteArrayOutputStream(len);
-		DataOutputStream dos = new DataOutputStream(baos);
+		ByteBuffer b = ByteBuffer.allocate(4);
+		
+		//write numValues as bytes
+		b.putInt(numItems);
+		pLen = b.array();
+		baos.write(pLen, offset, pLen.length);
+		offset += pLen.length;
 
 		// write the # items on the page
 		// write each key/value pair on the page, in the form:
 		// [key len, # chars] [val len, # chars] [key] [val]
 		
-		// TODO this entire function body
+		for(String k : items.keySet()) {
+			int kL = k.length();
+			ByteBuffer kB = ByteBuffer.allocate(4);
+			kLen = kB.array();
+			String v = items.get(k);
+			int iL = v.length();
+			ByteBuffer vB = ByteBuffer.allocate(4);
+			vLen = vB.array();
+			
+			baos.write(kLen, offset, kLen.length);
+			System.out.println("Wrote key length " + kLen + " at offset " + offset);
+			offset += kLen.length;
+			baos.write(k.getBytes(), offset, k.getBytes().length);
+			System.out.println("Wrote key " + k + " at offset " + offset);
+			offset += k.getBytes().length;
+			
+			baos.write(vLen, offset, vLen.length);
+			System.out.println("Wrote value length " + vLen + " at offset " + offset);
+			offset += vLen.length;
+			baos.write(v.getBytes(), offset, v.getBytes().length);
+			System.out.println("Wrote value " + k + " at offset " + offset);
+			offset += v.getBytes().length;
+			
+		}
 		
 		return baos.toByteArray();
 	}

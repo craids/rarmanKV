@@ -10,13 +10,16 @@ public class SimpleKV implements KeyValue {
 	public static final int PAGE_SIZE = 4096; // page size in bytes
 	public static final int PAGE_PADDING = 300; // extra space in pages for safety
 	public static int lastPageId = 0; // used to generate new page ids
-	public static File file;
+	public static File file = new File("test.out");
 	
 	private TreeMap<String,String> map;
 	private HashMap<Integer, Page> pageMap;
 	private HashSet<Page> dirtyPages;
 	
     public SimpleKV() {
+    	this.map = new TreeMap<>();
+    	this.pageMap = new HashMap<>();
+    	this.dirtyPages = new HashSet<>();
     }
 
     @Override
