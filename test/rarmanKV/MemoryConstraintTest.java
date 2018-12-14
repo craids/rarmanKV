@@ -28,7 +28,8 @@ class MemoryConstraintTest {
                 byte[] keyBytes = new byte[256];
                 random.nextBytes(keyBytes);
                 char[] chars = new String(keyBytes).toCharArray();  // 512 bytes (2byte/char, 256 chars)
-            	kv.write(chars, chars); // write 1024 bytes (key, value both 512)
+                String value = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+                kv.write(chars, value.toCharArray()); // write 1024 bytes (key, value both 512)
             }
         } catch (Exception e) {
         	e.printStackTrace();
