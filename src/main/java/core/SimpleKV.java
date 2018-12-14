@@ -10,7 +10,7 @@ public class SimpleKV implements KeyValue {
 	public static final int PAGE_SIZE = 4096; // page size in bytes
 	public static final int PAGE_PADDING = 300; // extra space in pages for safety
 	public static int lastPageId = 0; // used to generate new page ids
-	public static File file = new File("test.out");
+	public static File file;
 	
 	private TreeMap<String,String> map;
 	private HashMap<Integer, Page> pageMap;
@@ -25,6 +25,11 @@ public class SimpleKV implements KeyValue {
     @Override
     public SimpleKV initAndMakeStore(String path) {
     	file = new File(path);
+    	try {
+			file.createNewFile();
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to make file: " + e.getMessage());
+		}
     	return new SimpleKV();
     }
 
