@@ -6,11 +6,12 @@ import core.SimpleKV;
 import junit.framework.Assert;
 
 class MemoryConstraintTest {
-	private final float MEMORY_LIMIT_IN_MB = 1000;
+	private final float MEMORY_LIMIT_IN_MB = 500;
 
     @Test public void testInMemoryMapUse() {
     	System.out.println("Test for using more than 1GB RAM");
         SimpleKV kv = new SimpleKV();
+        kv.beginTx();
         long beginMem = getMemoryFootprint();
         
         SecureRandom random = new SecureRandom();
@@ -32,6 +33,7 @@ class MemoryConstraintTest {
         if (memDiff > MEMORY_LIMIT_IN_MB) {
             Assert.fail("Used too much RAM. KV test used " + memDiff + " MB of RAM, when limit was " + MEMORY_LIMIT_IN_MB);
         }
+        kv.commit();
     }
 
     /**

@@ -30,3 +30,6 @@ hs_err_pid*
 bin/*
 build/*
 /bin/
+
+# DS store
+*.DS_Store
