@@ -1,10 +1,14 @@
 package rarmanKV;
 
 import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.*;
 
 import org.junit.jupiter.api.*;
+
+import core.Page;
 import core.SimpleKV;
 
 class BasicFunctionalityTest {
@@ -18,6 +22,22 @@ class BasicFunctionalityTest {
 	@AfterEach
 	void cleanUp() {
 		kv.reset();
+	}
+	
+	@Test
+	void testPageReadWrite() {
+		try {
+			Page p = new Page(new byte[SimpleKV.PAGE_SIZE], 1);
+			p.write("a", "a");
+			p.write("b", "b");
+			p.write("c", "c");
+			
+			Page p2 = new Page(p.serializeData(), 2);
+			int dummy = 0;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Test
