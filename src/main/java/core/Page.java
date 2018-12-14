@@ -58,20 +58,18 @@ public class Page {
 	}
 	
 	// get byte-ified data of this page to be written to disk
-	public byte[] getPageData() {
+	public byte[] getPageData() throws IOException {
 		byte[] pLen = null;
 		byte[] kLen = null;
 		byte[] vLen = null;
  		int len = SimpleKV.PAGE_SIZE;
-		int offset = 0;
 		ByteArrayOutputStream baos = new ByteArrayOutputStream(len);
 		ByteBuffer b = ByteBuffer.allocate(4);
 		
 		//write numValues as bytes
 		b.putInt(numItems);
 		pLen = b.array();
-		baos.write(pLen, offset, pLen.length);
-		offset += pLen.length;
+		baos.write(pLen);
 
 		// write the # items on the page
 		// write each key/value pair on the page, in the form:
@@ -86,19 +84,11 @@ public class Page {
 			ByteBuffer vB = ByteBuffer.allocate(4);
 			vLen = vB.array();
 			
-			baos.write(kLen, offset, kLen.length);
-			System.out.println("Wrote key length " + kLen + " at offset " + offset);
-			offset += kLen.length;
-			baos.write(k.getBytes(), offset, k.getBytes().length);
-			System.out.println("Wrote key " + k + " at offset " + offset);
-			offset += k.getBytes().length;
+			baos.write(kLen);
+			baos.write(k.getBytes());
 			
-			baos.write(vLen, offset, vLen.length);
-			System.out.println("Wrote value length " + vLen + " at offset " + offset);
-			offset += vLen.length;
-			baos.write(v.getBytes(), offset, v.getBytes().length);
-			System.out.println("Wrote value " + k + " at offset " + offset);
-			offset += v.getBytes().length;
+			baos.write(vLen);
+			baos.write(v.getBytes());
 			
 		}
 		
