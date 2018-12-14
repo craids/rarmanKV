@@ -30,8 +30,8 @@ public class Page {
 			byte[] key = new byte[keyLen];
 			byte[] val = new byte[valLen];
 			
-			for (int k = 0; k < keyLen; k++) key[k] = dis.readByte();
-			for (int v = 0; v < valLen; v++) val[v] = dis.readByte();
+			dis.read(key, 0, keyLen);
+			dis.read(val, 0, valLen);
 			System.out.println("-------------");
 			System.out.println(new String(key));
 			System.out.println("-------------");
@@ -81,12 +81,12 @@ public class Page {
 		
 		for(String k : items.keySet()) {
 			ByteBuffer kB = ByteBuffer.allocate(4);
-			kB.putInt(k.length() * 2);
+			kB.putInt(k.length());
 			kLen = kB.array();
 			
 			String v = items.get(k);
 			ByteBuffer vB = ByteBuffer.allocate(4);
-			vB.putInt(v.length() * 2);
+			vB.putInt(v.length());
 			vLen = vB.array();
 			
 			baos.write(kLen);

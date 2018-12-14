@@ -56,9 +56,11 @@ public class SimpleKV implements KeyValue {
     	for (int i = 0; i < lastPageId; i++) {
     		if (!pageMap.keySet().contains(i)) { // make sure we didn't just look at this page in cache
     			Page p = addPageToMemory(i);
-    			if (p.items.containsKey(keyString)) p.write(keyString, valueString);
-    			dirtyPages.add(p);
-    			return;
+    			if (p.items.containsKey(keyString)) {
+    				p.write(keyString, valueString);
+    				dirtyPages.add(p);
+    				return;
+    			}
     		}
     	}
     	
