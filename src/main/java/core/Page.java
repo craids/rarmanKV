@@ -52,9 +52,9 @@ public class Page {
 		numBytes += key.length() * 2;
 		numBytes += val.length() * 2;
 	}
-	
-	public boolean hasSpace() {
-		if ((SimpleKV.PAGE_SIZE - numBytes) > SimpleKV.PAGE_PADDING) return true;
+
+	public boolean hasSpace(int toInsert) {
+		if(SimpleKV.PAGE_SIZE - numBytes - toInsert > SimpleKV.PAGE_PADDING) return true;
 		return false;
 	}
 	

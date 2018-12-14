@@ -67,12 +67,11 @@ public class SimpleKV implements KeyValue {
     	Page lastPage = pageMap.keySet().contains(lastPageId) ? 
     					pageMap.get(lastPageId) : 
     					addPageToMemory(lastPageId);
-    	if (lastPage.hasSpace()) {
-//    		System.out.println("space");
+
+    	if (lastPage.hasSpace(key.length + value.length)) {
     		lastPage.write(keyString, valueString);
     		dirtyPages.add(lastPage);
     	} else {
-    		System.out.println("adding to page "+ lastPageId);
     		Page p = addPageToMemory(lastPageId++);
     		p.write(keyString, valueString);
     		dirtyPages.add(p);
@@ -125,14 +124,14 @@ public class SimpleKV implements KeyValue {
     // evict a page, if necessary
     public void checkAndEvictPage() throws Exception {
     	if ((pageMap.size() + 1) * PAGE_SIZE > MEMORY_LIMIT) { // only evict if pages will exceed MEMORY_LIMIT
-    		System.out.println("evicting");
+    		System.out.print("evicting");
     		Object[] pages = pageMap.values().toArray();
     		int i = 0;
     		while (i < pageMap.size() - 1 && ((Page) pages[i]).isDirty) i++; // only evict clean
     		Page toEvict = (Page) pages[i];
     		if (toEvict.isDirty) { // no clean pages to evict
     			flushDirtyPages();
-    			System.out.println("done evicting");
+    			System.out.println("/done evicting");
     			return;
     		}
     		pageMap.remove(toEvict.id);
