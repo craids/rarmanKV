@@ -21,17 +21,21 @@ public class Page {
 		DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data));
 
 		numItems = dis.readInt();
+		if (numItems != 0)System.out.println("numItems: "+numItems);
 		for (int i = 0; i < numItems; i++) {
-			int keyLen = dis.readInt();
-			int valLen = dis.readInt();
+			int keyLen = dis.readInt(); // in bytes
+			int valLen = dis.readInt(); // in bytes
 			System.out.println("keyLen " + keyLen +", valLen "+ valLen);
-			numBytes += keyLen * 2 + valLen * 2;
-			char[] key = new char[keyLen];
-			char[] val = new char[valLen];
+			numBytes += keyLen + valLen;
+			byte[] key = new byte[keyLen];
+			byte[] val = new byte[valLen];
 			
-			for (int k = 0; k < keyLen; k++) key[k] = dis.readChar();
-			for (int v = 0; v < valLen; v++) val[v] = dis.readChar();
-			
+			for (int k = 0; k < keyLen; k++) key[k] = dis.readByte();
+			for (int v = 0; v < valLen; v++) val[v] = dis.readByte();
+			System.out.println("-------------");
+			System.out.println(new String(key));
+			System.out.println("-------------");
+			System.out.println(new String(val));
 			items.put(new String(key), new String(val));
 		}
 		dis.close();
@@ -67,30 +71,28 @@ public class Page {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream(len);
 		ByteBuffer b = ByteBuffer.allocate(4);
 		
-		//write numValues as bytes
+		//write numItems as bytes
 		b.putInt(numItems);
 		pLen = b.array();
 		baos.write(pLen);
 
-		// write the # items on the page
 		// write each key/value pair on the page, in the form:
-		// [key len, # chars] [val len, # chars] [key] [val]
+		// [key len, # bytes] [val len, # bytes] [key] [val]
 		
 		for(String k : items.keySet()) {
 			ByteBuffer kB = ByteBuffer.allocate(4);
-			kB.putInt(k.length());
+			kB.putInt(k.length() * 2);
 			kLen = kB.array();
 			
 			String v = items.get(k);
 			ByteBuffer vB = ByteBuffer.allocate(4);
-			vB.putInt(v.length());
+			vB.putInt(v.length() * 2);
 			vLen = vB.array();
 			
 			baos.write(kLen);
 			baos.write(vLen);
 			baos.write(k.getBytes());
 			baos.write(v.getBytes());
-			
 		}
 		
 		return baos.toByteArray();
