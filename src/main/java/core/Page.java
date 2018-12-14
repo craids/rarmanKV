@@ -85,9 +85,8 @@ public class Page {
 			vLen = vB.array();
 			
 			baos.write(kLen);
-			baos.write(k.getBytes());
-			
 			baos.write(vLen);
+			baos.write(k.getBytes());
 			baos.write(v.getBytes());
 			
 		}
