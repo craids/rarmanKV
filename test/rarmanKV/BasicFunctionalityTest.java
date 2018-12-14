@@ -12,7 +12,8 @@ class BasicFunctionalityTest {
 	
 	@BeforeEach
 	void setUp() {
-		kv = kv.initAndMakeStore("test.out"); // empty out kv store before testing
+		kv.reset(); // empty out kv store before testing
+		kv = kv.initAndMakeStore("test.out");
 	}
 
 	@Test

@@ -11,6 +11,8 @@ class MemoryConstraintTest {
     @Test public void testInMemoryMapUse() {
     	System.out.println("Test for using more than 1GB RAM");
         SimpleKV kv = new SimpleKV();
+        kv.reset(); // empty out kv store before testing
+		kv = kv.initAndMakeStore("test.out");
         kv.beginTx();
         long beginMem = getMemoryFootprint();
         
