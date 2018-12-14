@@ -33,3 +33,5 @@ build/*
 
 # DS store
 *.DS_Store
+
+test.out

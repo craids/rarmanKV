@@ -20,7 +20,7 @@ class MemoryConstraintTest {
         System.out.print("Begin writing...");
 
         // write 512MB to KV store
-        for (int i = 0; i < 1000000; i++) {
+        for (int i = 0; i < 2000000; i++) {
             byte[] keyBytes = new byte[128];
             random.nextBytes(keyBytes);
             char[] chars = new String(keyBytes).toCharArray();  // 256 bytes (2byte/char, 128 chars)

@@ -17,7 +17,7 @@ public class Page {
 	public Map<String, String> items = new HashMap<>();
 	
 	public Page(byte[] data, int id) throws IOException {
-		numBytes = data.length;
+		numBytes = 0;
 		this.id = id;
 		DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data));
 
@@ -25,6 +25,7 @@ public class Page {
 		for (int i = 0; i < numItems; i++) {
 			int keyLen = dis.readInt();
 			int valLen = dis.readInt();
+			numBytes += keyLen * 2 + valLen * 2;
 			char[] key = new char[keyLen];
 			char[] val = new char[valLen];
 			
@@ -51,9 +52,9 @@ public class Page {
 		numBytes += key.length() * 2;
 		numBytes += val.length() * 2;
 	}
-	
-	public boolean hasSpace() {
-		if ((SimpleKV.PAGE_SIZE - numBytes) < SimpleKV.PAGE_PADDING) return true;
+
+	public boolean hasSpace(int toInsert) {
+		if(SimpleKV.PAGE_SIZE - numBytes - toInsert > SimpleKV.PAGE_PADDING) return true;
 		return false;
 	}
 	

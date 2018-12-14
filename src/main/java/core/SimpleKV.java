@@ -67,7 +67,7 @@ public class SimpleKV implements KeyValue {
     	Page lastPage = pageMap.keySet().contains(lastPageId) ? 
     					pageMap.get(lastPageId) : 
     					addPageToMemory(lastPageId);
-    	if (lastPage.hasSpace()) {
+    	if (lastPage.hasSpace(key.length + value.length)) {
     		lastPage.write(keyString, valueString);
     		dirtyPages.add(lastPage);
     	} else {
