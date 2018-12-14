@@ -13,11 +13,10 @@ public class Page {
 	boolean isDirty = false;
 	int id;
 	int numItems; // counter of # key/val pairs on this page
-	int numBytes; // counter of # bytes on this page
+	int numBytes = 0; // counter of # bytes on this page
 	public Map<String, String> items = new HashMap<>();
 	
 	public Page(byte[] data, int id) throws IOException {
-		numBytes = data.length;
 		this.id = id;
 		DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data));
 
@@ -25,6 +24,8 @@ public class Page {
 		for (int i = 0; i < numItems; i++) {
 			int keyLen = dis.readInt();
 			int valLen = dis.readInt();
+			System.out.println("keyLen " + keyLen +", valLen "+ valLen);
+			numBytes += keyLen * 2 + valLen * 2;
 			char[] key = new char[keyLen];
 			char[] val = new char[valLen];
 			
@@ -53,12 +54,12 @@ public class Page {
 	}
 	
 	public boolean hasSpace() {
-		if ((SimpleKV.PAGE_SIZE - numBytes) < SimpleKV.PAGE_PADDING) return true;
+		if ((SimpleKV.PAGE_SIZE - numBytes) > SimpleKV.PAGE_PADDING) return true;
 		return false;
 	}
 	
 	// get byte-ified data of this page to be written to disk
-	public byte[] getPageData() throws IOException {
+	public byte[] serializeData() throws IOException {
 		byte[] pLen = null;
 		byte[] kLen = null;
 		byte[] vLen = null;
@@ -76,12 +77,13 @@ public class Page {
 		// [key len, # chars] [val len, # chars] [key] [val]
 		
 		for(String k : items.keySet()) {
-			int kL = k.length();
 			ByteBuffer kB = ByteBuffer.allocate(4);
+			kB.putInt(k.length());
 			kLen = kB.array();
+			
 			String v = items.get(k);
-			int iL = v.length();
 			ByteBuffer vB = ByteBuffer.allocate(4);
+			vB.putInt(v.length());
 			vLen = vB.array();
 			
 			baos.write(kLen);
@@ -99,7 +101,7 @@ public class Page {
 	public void flush() throws IOException {
         RandomAccessFile r = new RandomAccessFile(SimpleKV.file, "rw");
         final int offset = id * SimpleKV.PAGE_SIZE;
-        final byte[] data = getPageData();
+        final byte[] data = serializeData();
         
         r.seek(offset);
         r.write(data);

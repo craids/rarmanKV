@@ -9,7 +9,7 @@ class MemoryConstraintTest {
 	private final float MEMORY_LIMIT_IN_MB = 500;
 
     @Test public void testInMemoryMapUse() {
-    	System.out.println("Test for using more than 1GB RAM");
+    	System.out.println("Test for using more than 500MB RAM");
         SimpleKV kv = new SimpleKV();
         kv.reset(); // empty out kv store before testing
 		kv = kv.initAndMakeStore("test.out");
@@ -19,23 +19,34 @@ class MemoryConstraintTest {
         SecureRandom random = new SecureRandom();
         System.out.print("Begin writing...");
 
-        // write 512MB to KV store
-        for (int i = 0; i < 1000000; i++) {
-            byte[] keyBytes = new byte[128];
-            random.nextBytes(keyBytes);
-            char[] chars = new String(keyBytes).toCharArray();  // 256 bytes (2byte/char, 128 chars)
-        	kv.write(chars, chars); // write 512 bytes (key, value both 256)
+        try {
+            // write 1GB to KV store
+            for (int i = 0; i < 1000000; i++) {
+            	if (i == 250000) System.out.print("25%...");
+            	if (i == 500000) System.out.print("50%...");
+            	if (i == 750000) System.out.print("75%...");
+                byte[] keyBytes = new byte[256];
+                random.nextBytes(keyBytes);
+                char[] chars = new String(keyBytes).toCharArray();  // 512 bytes (2byte/char, 256 chars)
+            	kv.write(chars, chars); // write 1024 bytes (key, value both 512)
+            }
+        } catch (Exception e) {
+        	e.printStackTrace();
+        	kv.reset();
+        	Assert.fail("Error while writing to db");
         }
         
         System.out.println(" end writing");
-        
         long endMem = getMemoryFootprint();
         long memDiff = (endMem - beginMem) / (1<<20);
         System.out.println("Footprint: " + memDiff + "MB");
+        
+        kv.commit();
+        kv.reset();
+        
         if (memDiff > MEMORY_LIMIT_IN_MB) {
             Assert.fail("Used too much RAM. KV test used " + memDiff + " MB of RAM, when limit was " + MEMORY_LIMIT_IN_MB);
         }
-        kv.commit();
     }
 
     /**
