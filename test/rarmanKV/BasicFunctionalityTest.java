@@ -57,7 +57,6 @@ class BasicFunctionalityTest {
 		assertNotNull(kv, "kv store is null!");
 		kv.beginTx();
 		Set<char[]> written = new HashSet<>();
-		SecureRandom random = new SecureRandom();
 		
 		for (int i = 0; i < 100000; i++) {
 			char[] keyChars = new char[16];

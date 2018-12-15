@@ -8,7 +8,7 @@ import java.util.*;
 public class SimpleKV implements KeyValue {
 	public static final int MEMORY_LIMIT = 500000000; // in bytes, slightly under 500MB for safety
 	public static final int PAGE_SIZE = 1000000; // page size in bytes
-	public static final int PAGE_PADDING = 300; // extra space in pages for safety
+	public static final int PAGE_PADDING = 1000; // extra space in pages for safety
 	public static int lastPageId = 0; // used to generate new page ids
 	public static File file;
 	
@@ -36,6 +36,12 @@ public class SimpleKV implements KeyValue {
     // WARNING!!! use only in testing, will wipe the DB file
     public void reset() {
     	if (file != null) file.delete();
+    	lastPageId = 0;
+    }
+    
+    // clears main memory. used in testing to simulate a crash
+    public void crash() {
+    	pageMap = new HashMap<>();
     	lastPageId = 0;
     }
 
@@ -75,7 +81,8 @@ public class SimpleKV implements KeyValue {
     		lastPage.write(keyString, valueString);
     		dirtyPages.add(lastPage);
     	} else {
-    		Page p = addPageToMemory(lastPageId++);
+    		lastPageId++;
+    		Page p = addPageToMemory(lastPageId);
     		p.write(keyString, valueString);
     		dirtyPages.add(p);
     	}
@@ -92,9 +99,9 @@ public class SimpleKV implements KeyValue {
     			return p.items.get(keyString).toCharArray();
     		}
     	}
-    	
+
     	// read from disk until found
-    	for (int i = 0; i < lastPageId; i++) {
+    	for (int i = 0; i <= lastPageId; i++) {
     		if (!pageMap.keySet().contains(i)) {
     			Page p = addPageToMemory(i);
     			if (p.items.containsKey(keyString)) return p.items.get(keyString).toCharArray();
@@ -127,15 +134,16 @@ public class SimpleKV implements KeyValue {
     // evict a page, if necessary
     public void checkAndEvictPage() throws Exception {
     	if ((pageMap.size() + 1) * PAGE_SIZE > MEMORY_LIMIT) { // only evict if pages will exceed MEMORY_LIMIT
-    		Object[] pages = pageMap.values().toArray();
-    		int i = 0;
-    		while (i < pageMap.size() - 1 && ((Page) pages[i]).isDirty) i++; // only evict clean
-    		Page toEvict = (Page) pages[i];
-    		if (toEvict.isDirty) { // no clean pages to evict
-    			flushDirtyPages();
-    			return;
-    		}
-    		pageMap.remove(toEvict.id);
+//    		Object[] pages = pageMap.values().toArray();
+//    		int i = 0;
+//    		while (i < pageMap.size() - 1 && ((Page) pages[i]).isDirty) i++; // only evict clean
+//    		Page toEvict = (Page) pages[i];
+//    		if (toEvict.isDirty) { // no clean pages to evict
+//    			flushDirtyPages();
+//    			return;
+//    		}
+//    		pageMap.remove(toEvict.id);
+    		flushDirtyPages();
     	}
     }
 
