@@ -75,7 +75,8 @@ public class SimpleKV implements KeyValue {
     		lastPage.write(keyString, valueString);
     		dirtyPages.add(lastPage);
     	} else {
-    		Page p = addPageToMemory(lastPageId++);
+    		lastPageId++;
+    		Page p = addPageToMemory(lastPageId);
     		p.write(keyString, valueString);
     		dirtyPages.add(p);
     	}

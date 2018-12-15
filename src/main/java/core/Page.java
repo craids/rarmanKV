@@ -32,11 +32,9 @@ public class Page {
 			
 			dis.read(key, 0, keyLen);
 			dis.read(val, 0, valLen);
-//			System.out.println("-------------");
-//			System.out.println(new String(key));
-//			System.out.println("-------------");
-//			System.out.println(new String(val));
-			items.put(new String(key), new String(val));
+			String keyS = new String(key, "UTF-8");
+			String valS = new String(val, "UTF-8");
+			items.put(keyS, valS);
 		}
 		dis.close();
 	}
@@ -75,26 +73,21 @@ public class Page {
 		b.putInt(numItems);
 		pLen = b.array();
 		baos.write(pLen);
-
-		// write each key/value pair on the page, in the form:
-		// [key len, # bytes] [val len, # bytes] [key] [val]
 		
 		for(String k : items.keySet()) {
 			ByteBuffer kB = ByteBuffer.allocate(4);
-			kB.putInt(k.length());
+			kB.putInt(k.getBytes("UTF-8").length);
 			kLen = kB.array();
 			
 			String v = items.get(k);
-//			System.out.print(v);
 			ByteBuffer vB = ByteBuffer.allocate(4);
-			vB.putInt(v.length());
+			vB.putInt(v.getBytes("UTF-8").length);
 			vLen = vB.array();
 			
 			baos.write(kLen);
 			baos.write(vLen);
-//			System.out.println("v bytes length" + v.getBytes("UTF-8").length);
-			baos.write(k.getBytes());
-			baos.write(v.getBytes());
+			baos.write(k.getBytes("UTF-8").length);
+			baos.write(v.getBytes("UTF-8").length);
 		}
 		
 		return baos.toByteArray();
