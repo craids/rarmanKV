@@ -60,11 +60,10 @@ class BasicFunctionalityTest {
 		SecureRandom random = new SecureRandom();
 		
 		for (int i = 0; i < 100000; i++) {
-			byte[] keyBytes = new byte[16];
-            random.nextBytes(keyBytes);
-            char[] chars = new String(keyBytes).toCharArray();
-        	kv.write(chars, chars);
-        	written.add(chars);
+			char[] keyChars = new char[16];
+			for (int k=0; k < 16; k++) keyChars[k] = getRandomCharacter();
+        	kv.write(keyChars, keyChars);
+        	written.add(keyChars);
 		}
 		
 		for (char[] chars : written) {
@@ -89,4 +88,9 @@ class BasicFunctionalityTest {
 		assertArrayEquals(val2, actual2);
 		kv.commit();
 	}
+	
+    private static char getRandomCharacter() {
+        Random r = new Random();
+        return (char)(r.nextInt(95)+32);
+    }
 }

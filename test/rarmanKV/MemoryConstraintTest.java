@@ -1,6 +1,8 @@
 package rarmanKV;
 
 import java.security.SecureRandom;
+import java.util.Random;
+
 import org.junit.jupiter.api.Test;
 import core.SimpleKV;
 import junit.framework.Assert;
@@ -25,11 +27,10 @@ class MemoryConstraintTest {
             	if (i == 250000) System.out.print("25%...");
             	if (i == 500000) System.out.print("50%...");
             	if (i == 750000) System.out.print("75%...");
-                byte[] keyBytes = new byte[256];
-                random.nextBytes(keyBytes);
-                char[] chars = new String(keyBytes).toCharArray();  // 512 bytes (2byte/char, 256 chars)
+                char[] keyChars = new char[256];
+                for (int k=0; k < 256; k++) keyChars[k] = getRandomCharacter();
                 String value = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-                kv.write(chars, value.toCharArray()); // write 1024 bytes (key, value both 512)
+                kv.write(keyChars, value.toCharArray()); // write 1024 bytes (key, value both 512)
             }
         } catch (Exception e) {
         	e.printStackTrace();
@@ -49,6 +50,12 @@ class MemoryConstraintTest {
             Assert.fail("Used too much RAM. KV test used " + memDiff + " MB of RAM, when limit was " + MEMORY_LIMIT_IN_MB);
         }
     }
+    
+    private static char getRandomCharacter() {
+        Random r = new Random();
+        return (char)(r.nextInt(95)+32);
+    }
+
 
     /**
      * This method taken from simpledb.SystemTestUtil file

@@ -36,6 +36,7 @@ public class SimpleKV implements KeyValue {
     // WARNING!!! use only in testing, will wipe the DB file
     public void reset() {
     	if (file != null) file.delete();
+    	lastPageId = 0;
     }
 
     @Override
@@ -126,14 +127,12 @@ public class SimpleKV implements KeyValue {
     // evict a page, if necessary
     public void checkAndEvictPage() throws Exception {
     	if ((pageMap.size() + 1) * PAGE_SIZE > MEMORY_LIMIT) { // only evict if pages will exceed MEMORY_LIMIT
-    		System.out.print("evicting");
     		Object[] pages = pageMap.values().toArray();
     		int i = 0;
     		while (i < pageMap.size() - 1 && ((Page) pages[i]).isDirty) i++; // only evict clean
     		Page toEvict = (Page) pages[i];
     		if (toEvict.isDirty) { // no clean pages to evict
     			flushDirtyPages();
-    			System.out.println("/done evicting");
     			return;
     		}
     		pageMap.remove(toEvict.id);
