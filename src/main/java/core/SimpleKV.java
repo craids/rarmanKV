@@ -58,17 +58,18 @@ public class SimpleKV implements KeyValue {
     	String keyString = new String(key);
     	String valueString = new String(value);
     	
-    	// see if our key is already on one of the pages in cache
-    	for (Page p: pageMap.values()) {
-    		if (p.items.containsKey(keyString)) {
-    			p.write(keyString, valueString);
-    			dirtyPages.add(p);
-    			return;
-    		}
-    	}
-    	
-    	// need to see if key has already been written
     	if (seenKeys.contains(keyString)) {
+        	// see if our key is already on one of the pages in cache
+        	for (Map.Entry<Integer, Page> entry: pageMap.entrySet()) {
+        		Page p = entry.getValue();
+        		if (p.items.containsKey(keyString)) {
+        			p.write(keyString, valueString);
+        			dirtyPages.add(p);
+        			return;
+        		}
+        	}
+        	 
+        	// need to see if key has already been written to disk
         	for (int i = 0; i < lastPageId; i++) {
         		if (!pageMap.keySet().contains(i)) { // make sure we didn't just look at this page in cache
         			Page p = addPageToMemory(i);
@@ -79,26 +80,25 @@ public class SimpleKV implements KeyValue {
         			}
         		}
         	}
-    	}
-    	
-    	// if we got here, the key doesn't exist yet in our db. write it to last page, if it has room; otherwise,
-    	// make a new page.
-    	Page lastPage = pageMap.keySet().contains(lastPageId) ? 
-    					pageMap.get(lastPageId) : 
-    					addPageToMemory(lastPageId);
-
-    	if (lastPage.hasSpace(key.length + value.length)) {
-    		lastPage.write(keyString, valueString);
-    		dirtyPages.add(lastPage);
     	} else {
-    		lastPageId++;
-    		Page p = addPageToMemory(lastPageId);
-    		p.write(keyString, valueString);
-    		dirtyPages.add(p);
+        	// if we got here, the key doesn't exist yet in our db. write it to last page, if it has room; otherwise,
+        	// make a new page.
+        	Page lastPage = pageMap.keySet().contains(lastPageId) ? 
+        					pageMap.get(lastPageId) : 
+        					addPageToMemory(lastPageId);
+
+        	if (lastPage.hasSpace(key.length + value.length)) {
+        		lastPage.write(keyString, valueString);
+        		dirtyPages.add(lastPage);
+        	} else {
+        		lastPageId++;
+        		Page p = addPageToMemory(lastPageId);
+        		p.write(keyString, valueString);
+        		dirtyPages.add(p);
+        	}
+        	seenKeys.add(keyString);
+        	seenKeyBytes += keyString.length();
     	}
-    	seenKeys.add(keyString);
-    	seenKeyBytes += keyString.length();
-    	
     }
 
     @Override
@@ -106,7 +106,8 @@ public class SimpleKV implements KeyValue {
     	String keyString = new String(key);
     	
     	// try reading from cache
-    	for (Page p: pageMap.values()) {
+    	for (Map.Entry<Integer, Page> entry: pageMap.entrySet()) {
+    		Page p = entry.getValue();
     		if (p.items.containsKey(keyString)) {
     			return p.items.get(keyString).toCharArray();
     		}
