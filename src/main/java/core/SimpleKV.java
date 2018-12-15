@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.*;
+import java.util.Map.Entry;
 
 public class SimpleKV implements KeyValue {
 	public static final int MEMORY_LIMIT = 400000000; // in bytes, slightly under 500MB for safety
@@ -60,7 +61,8 @@ public class SimpleKV implements KeyValue {
     	
     	if (seenKeys.contains(keyString)) {
         	// see if our key is already on one of the pages in cache
-        	for (Map.Entry<Integer, Page> entry: pageMap.entrySet()) {
+    		Set<Entry<Integer, Page>> entrySet = pageMap.entrySet();
+        	for (Map.Entry<Integer, Page> entry: entrySet) {
         		Page p = entry.getValue();
         		if (p.items.containsKey(keyString)) {
         			p.write(keyString, valueString);
@@ -69,9 +71,10 @@ public class SimpleKV implements KeyValue {
         		}
         	}
         	 
+        	Set<Integer> pageKeySet = pageMap.keySet();
         	// need to see if key has already been written to disk
         	for (int i = 0; i < lastPageId; i++) {
-        		if (!pageMap.keySet().contains(i)) { // make sure we didn't just look at this page in cache
+        		if (!pageKeySet.contains(i)) { // make sure we didn't just look at this page in cache
         			Page p = addPageToMemory(i);
         			if (p.items.containsKey(keyString)) {
         				p.write(keyString, valueString);
@@ -83,7 +86,8 @@ public class SimpleKV implements KeyValue {
     	} else {
         	// if we got here, the key doesn't exist yet in our db. write it to last page, if it has room; otherwise,
         	// make a new page.
-        	Page lastPage = pageMap.keySet().contains(lastPageId) ? 
+    		Set<Integer> pageKeySet = pageMap.keySet();
+        	Page lastPage = pageKeySet.contains(lastPageId) ? 
         					pageMap.get(lastPageId) : 
         					addPageToMemory(lastPageId);
 
@@ -105,17 +109,19 @@ public class SimpleKV implements KeyValue {
     public char[] read(char[] key) {
     	String keyString = new String(key);
     	
+    	Set<Entry<Integer, Page>> entrySet = pageMap.entrySet();
     	// try reading from cache
-    	for (Map.Entry<Integer, Page> entry: pageMap.entrySet()) {
+    	for (Map.Entry<Integer, Page> entry: entrySet) {
     		Page p = entry.getValue();
     		if (p.items.containsKey(keyString)) {
     			return p.items.get(keyString).toCharArray();
     		}
     	}
 
+    	Set<Integer> pageKeySet = pageMap.keySet();
     	// read from disk until found
     	for (int i = 0; i <= lastPageId; i++) {
-    		if (!pageMap.keySet().contains(i)) {
+    		if (!pageKeySet.contains(i)) {
     			Page p = addPageToMemory(i);
     			if (p.items.containsKey(keyString)) return p.items.get(keyString).toCharArray();
     		}
