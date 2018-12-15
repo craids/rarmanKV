@@ -87,8 +87,8 @@ public class Page {
 			baos.write(kLen);
 			baos.write(vLen);
 
-			baos.write(k.getBytes("UTF-8").length);
-			baos.write(v.getBytes("UTF-8").length);
+			baos.write(k.getBytes("UTF-8"));
+			baos.write(v.getBytes("UTF-8"));
 		}
 		
 		return baos.toByteArray();
