@@ -1,13 +1,19 @@
 package rarmanKV;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
-import java.security.SecureRandom;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Random;
+import java.util.Set;
 
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
+import core.KVPair;
 import core.Page;
 import core.SimpleKV;
 
@@ -86,6 +92,36 @@ class BasicFunctionalityTest {
 		char[] actual2 = kv.read(key);
 		assertArrayEquals(val2, actual2);
 		kv.commit();
+	}
+	
+	@Test
+	void rangeTest() {
+		char[] k1 = "a".toCharArray();
+		char[] k2 = "b".toCharArray();
+		char[] k3 = "c".toCharArray();
+		char[] k4 = "d".toCharArray();
+		char[] k5 = "e".toCharArray();
+		char[] k6 = "f".toCharArray();
+		char[] k7 = "g".toCharArray();
+		char[] k8 = "h".toCharArray();
+		char[] k9 = "i".toCharArray();
+		char[] k10 = "j".toCharArray();
+		char[] v = "a".toCharArray();
+		kv.write(k1, v);
+		kv.write(k2, v);
+		kv.write(k3, v);
+		kv.write(k4, v);
+		kv.write(k5, v);
+		kv.write(k6, v);
+		kv.write(k7, v);
+		kv.write(k8, v);
+		kv.write(k9, v);
+		kv.write(k10, v);
+		
+		Iterator<KVPair> it = kv.readRange("c".toCharArray(), "d".toCharArray());
+		while(it.hasNext()) {
+			System.out.println(it.next().element1);
+		}
 	}
 	
     private static char getRandomCharacter() {

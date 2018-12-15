@@ -126,6 +126,9 @@ public class SimpleKV implements KeyValue {
     
     // pull a page into main memory
     public Page addPageToMemory(int pageNo)  {
+    	if(pageMap.containsKey(pageNo)) {
+    		return pageMap.get(pageNo);
+    	}
     	try {
 			checkAndEvictPage();
 			RandomAccessFile r = new RandomAccessFile(file, "r");
@@ -168,22 +171,73 @@ public class SimpleKV implements KeyValue {
     }
     
     private class KVPairIterator implements Iterator<KVPair> {
-    	private Iterator<String> ksIterator;
+    	private String start;
+    	private String end;
+    	private String prevMin;
+    	private KVPairFullIterator it;
+    	private boolean startValid = true;
     	
         public KVPairIterator(String start,String end)
         {
-        	ksIterator = map.navigableKeySet().subSet(start, true, end, true).iterator();
+        	this.start = start;
+        	this.end = end;
+        	this.prevMin = start;
+        	it = new KVPairFullIterator();
         }
         
         @Override
         public boolean hasNext() {
-            return ksIterator.hasNext();
+        	it = new KVPairFullIterator();
+            KVPair currMin = null;
+            String currMinS = "";
+            while(it.hasNext()) {
+            	KVPair p = it.next();
+            	String key = new String(p.element1);
+            	if(key.compareTo(end) <= 0 && (key.compareTo(prevMin) > 0 || (startValid && prevMin.equals(start) && key.compareTo(prevMin) >= 0))) {
+            		if(currMin == null) {
+            			currMin = p;
+            			currMinS = key;
+            		} else {
+            			if(key.compareTo(currMinS) < 0) {
+            				currMin = p;
+            				currMinS = key;
+            			}
+            		}
+            	}
+            }
+            
+            if(currMin != null) {
+            	return true;
+            }
+            return false;
         }
 
         @Override
         public KVPair next() {
-            String nextKey = ksIterator.next();
-            return new KVPair(nextKey.toCharArray(), map.get(nextKey).toCharArray());
+        	it = new KVPairFullIterator();
+            KVPair currMin = null;
+            String currMinS = "";
+            while(it.hasNext()) {
+            	KVPair p = it.next();
+            	String key = new String(p.element1);
+            	if(key.compareTo(end) <= 0 && (key.compareTo(prevMin) > 0 || (startValid && prevMin.equals(start) && key.compareTo(prevMin) >= 0))) {
+            		if(currMin == null) {
+            			currMin = p;
+            			currMinS = key;
+            		} else {
+            			if(key.compareTo(currMinS) < 0) {
+            				currMin = p;
+            				currMinS = key;
+            			}
+            		}
+            	}
+            }
+            
+            if(currMin != null) {
+            	prevMin = currMinS;
+            	startValid = false;
+            }
+            return currMin;
         }
 
         @Override
@@ -191,6 +245,47 @@ public class SimpleKV implements KeyValue {
             throw new UnsupportedOperationException();
         }
     };
+    
+    private class KVPairFullIterator implements Iterator<KVPair> {
+    	private int pageIndex;
+    	private Page currentPage;
+    	private Iterator<String> currentKeys;
+    	
+    	public KVPairFullIterator() {
+    		this.pageIndex = 0;
+    		
+    		addPageToMemory(0);
+    		this.currentPage = pageMap.get(0);
+    		this.currentKeys = currentPage.items.keySet().iterator();
+    	}
+    	
+    	@Override
+    	public boolean hasNext() {
+    		if(currentKeys.hasNext()) {
+    			return true;
+    		}
+    		
+    		if(pageIndex < lastPageId-1) {
+    			pageIndex++;
+    			addPageToMemory(pageIndex);
+    			currentPage = pageMap.get(pageIndex);
+    			return hasNext();
+    		}
+    		return false;
+    	}
+    	
+    	@Override
+    	public KVPair next() {
+    		String key = currentKeys.next();
+    		String val = currentPage.items.get(key);
+    		return new KVPair(key.toCharArray(), val.toCharArray());
+    	}
+    	
+    	@Override
+    	public void remove() {
+    		throw new UnsupportedOperationException();
+    	}
+    }
 
     @Override
     public void beginTx() {
