@@ -2,7 +2,7 @@ package rarmanKV;
 
 import java.security.SecureRandom;
 import java.util.Random;
-
+import java.lang.*;
 import org.junit.jupiter.api.Test;
 import core.SimpleKV;
 import junit.framework.Assert;
@@ -21,7 +21,10 @@ class MemoryConstraintTest {
         SecureRandom random = new SecureRandom();
         System.out.print("Begin writing...");
 
+        long startTime = 1;
+        long endTime = 0;
         try {
+        	startTime = System.currentTimeMillis();
             // write 1GB to KV store
             for (int i = 0; i < 1000000; i++) {
             	if (i == 250000) System.out.print("25%...");
@@ -32,6 +35,7 @@ class MemoryConstraintTest {
                 String value = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
                 kv.write(keyChars, value.toCharArray()); // write 1024 bytes (key, value both 512)
             }
+            endTime = System.currentTimeMillis();
         } catch (Exception e) {
         	e.printStackTrace();
         	kv.reset();
@@ -39,6 +43,7 @@ class MemoryConstraintTest {
         }
         
         System.out.println(" end writing");
+        System.out.println("Elapsed time: " + (endTime - startTime)/1000 + "s");
         long endMem = getMemoryFootprint();
         long memDiff = (endMem - beginMem) / (1<<20);
         System.out.println("Footprint: " + memDiff + "MB");
