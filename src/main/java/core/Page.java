@@ -21,20 +21,20 @@ public class Page {
 		DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data));
 
 		numItems = dis.readInt();
-//		if (numItems != 0)System.out.println("numItems: "+numItems);
 		for (int i = 0; i < numItems; i++) {
 			int keyLen = dis.readInt(); // in bytes
 			int valLen = dis.readInt(); // in bytes
-//			System.out.println("keyLen " + keyLen +", valLen "+ valLen);
 			numBytes += keyLen + valLen;
 			byte[] key = new byte[keyLen];
 			byte[] val = new byte[valLen];
 			
 			dis.read(key, 0, keyLen);
 			dis.read(val, 0, valLen);
+
 			String keyS = new String(key, "UTF-8");
 			String valS = new String(val, "UTF-8");
 			items.put(keyS, valS);
+
 		}
 		dis.close();
 	}
@@ -86,6 +86,7 @@ public class Page {
 			
 			baos.write(kLen);
 			baos.write(vLen);
+
 			baos.write(k.getBytes("UTF-8").length);
 			baos.write(v.getBytes("UTF-8").length);
 		}
