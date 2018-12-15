@@ -44,6 +44,7 @@ class MemoryConstraintTest {
         
         System.out.println(" end writing");
         System.out.println("Elapsed time: " + (endTime - startTime)/1000 + "s");
+        System.out.println("Num pages: " + kv.lastPageId);
         long endMem = getMemoryFootprint();
         long memDiff = (endMem - beginMem) / (1<<20);
         System.out.println("Footprint: " + memDiff + "MB");
