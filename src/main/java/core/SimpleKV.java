@@ -7,7 +7,7 @@ import java.util.*;
 
 public class SimpleKV implements KeyValue {
 	public static final int MEMORY_LIMIT = 500000000; // in bytes, slightly under 500MB for safety
-	public static final int PAGE_SIZE = 100000000; // page size in bytes
+	public static final int PAGE_SIZE = 10000000; // page size in bytes
 	public static final int PAGE_PADDING = 1000; // extra space in pages for safety
 	public static int lastPageId = 0; // used to generate new page ids
 	public static File file;
@@ -15,6 +15,7 @@ public class SimpleKV implements KeyValue {
 	private TreeMap<String,String> map;
 	private HashMap<Integer, Page> pageMap;
 	private HashSet<Page> dirtyPages;
+	private HashSet<String> seenKeys = new HashSet<>();
 	
     public SimpleKV() {
     	this.map = new TreeMap<>();
@@ -42,6 +43,7 @@ public class SimpleKV implements KeyValue {
     // clears main memory. used in testing to simulate a crash
     public void crash() {
     	pageMap = new HashMap<>();
+    	seenKeys = new HashSet<>();
     	lastPageId = 0;
     }
 
