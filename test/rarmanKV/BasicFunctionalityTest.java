@@ -1,6 +1,7 @@
 package rarmanKV;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
@@ -118,10 +119,29 @@ class BasicFunctionalityTest {
 		kv.write(k9, v);
 		kv.write(k10, v);
 		
-		Iterator<KVPair> it = kv.readRange("c".toCharArray(), "d".toCharArray());
+		int count = 0;
+		Iterator<KVPair> it = kv.readRange("a".toCharArray(), "z".toCharArray());
 		while(it.hasNext()) {
-			System.out.println(it.next().element1);
+			KVPair dispose = it.next();
+			count++;
 		}
+		assertEquals(count, 10);
+		count = 0;
+		
+		it = kv.readRange("b".toCharArray(), "j".toCharArray());
+		while(it.hasNext()) {
+			KVPair dispose = it.next();
+			count++;
+		}
+		assertEquals(count, 9);
+		count = 0;
+		
+		it = kv.readRange("c".toCharArray(), "e".toCharArray());
+		while(it.hasNext()) {
+			KVPair dispose = it.next();
+			count++;
+		}
+		assertEquals(count, 3);
 	}
 	
     private static char getRandomCharacter() {
