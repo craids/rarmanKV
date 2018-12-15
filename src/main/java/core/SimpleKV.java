@@ -12,7 +12,7 @@ public class SimpleKV implements KeyValue {
 	public static int lastPageId = 0; // used to generate new page ids
 	public static File file;
 	
-	private TreeMap<String,String> map;
+	private TreeMap<String,Integer> map;
 	private HashMap<Integer, Page> pageMap;
 	private HashSet<Page> dirtyPages;
 	
@@ -50,24 +50,18 @@ public class SimpleKV implements KeyValue {
     	String keyString = new String(key);
     	String valueString = new String(value);
     	
-    	// see if our key is already on one of the pages in cache
-    	for (Page p: pageMap.values()) {
-    		if (p.items.containsKey(keyString)) {
+    	if(map.containsKey(keyString)) {
+    		Integer pid = map.get(keyString);
+    		if(pageMap.containsKey(pid)) {
+    			Page p = pageMap.get(pid);
     			p.write(keyString, valueString);
     			dirtyPages.add(p);
     			return;
-    		}
-    	}
-    	
-    	// need to see if key already exists on disk (this will be slow af)
-    	for (int i = 0; i < lastPageId; i++) {
-    		if (!pageMap.keySet().contains(i)) { // make sure we didn't just look at this page in cache
-    			Page p = addPageToMemory(i);
-    			if (p.items.containsKey(keyString)) {
-    				p.write(keyString, valueString);
-    				dirtyPages.add(p);
-    				return;
-    			}
+    		} else {
+    			Page p = addPageToMemory(pid);
+    			p.write(keyString, valueString);
+    			dirtyPages.add(p);
+    			return;
     		}
     	}
     	
@@ -80,12 +74,37 @@ public class SimpleKV implements KeyValue {
     	if (lastPage.hasSpace(key.length + value.length)) {
     		lastPage.write(keyString, valueString);
     		dirtyPages.add(lastPage);
+    		index(keyString, lastPage.id);
     	} else {
     		lastPageId++;
     		Page p = addPageToMemory(lastPageId);
     		p.write(keyString, valueString);
     		dirtyPages.add(p);
+    		index(keyString, p.id);
     	}
+    	
+//    	// see if our key is already on one of the pages in cache
+//    	for (Page p: pageMap.values()) {
+//    		if (p.items.containsKey(keyString)) {
+//    			p.write(keyString, valueString);
+//    			dirtyPages.add(p);
+//    			index(keyString, p.id);
+//    			return;
+//    		}
+//    	}
+//    	
+//    	// need to see if key already exists on disk (this will be slow af)
+//    	for (int i = 0; i < lastPageId; i++) {
+//    		if (!pageMap.keySet().contains(i)) { // make sure we didn't just look at this page in cache
+//    			Page p = addPageToMemory(i);
+//    			if (p.items.containsKey(keyString)) {
+//    				p.write(keyString, valueString);
+//    				dirtyPages.add(p);
+//    				index(keyString, p.id);
+//    				return;
+//    			}
+//    		}
+//    	}
     	
     }
 
@@ -93,22 +112,36 @@ public class SimpleKV implements KeyValue {
     public char[] read(char[] key) {
     	String keyString = new String(key);
     	
-    	// try reading from cache
-    	for (Page p: pageMap.values()) {
-    		if (p.items.containsKey(keyString)) {
-    			return p.items.get(keyString).toCharArray();
-    		}
-    	}
-
-    	// read from disk until found
-    	for (int i = 0; i <= lastPageId; i++) {
-    		if (!pageMap.keySet().contains(i)) {
-    			Page p = addPageToMemory(i);
-    			if (p.items.containsKey(keyString)) return p.items.get(keyString).toCharArray();
-    		}
+    	if(!map.containsKey(keyString)) {
+    		throw new RuntimeException("Key not found on read!");
     	}
     	
-    	return null;
+    	Page p = null;
+    	Integer pid = map.get(keyString);
+    	if(pageMap.containsKey(pid)) {
+    		p = pageMap.get(pid);
+    	} else {
+    		p = addPageToMemory(pid);
+    	}
+    	
+    	return p.items.get(keyString).toCharArray();
+    	
+//    	// try reading from cache
+//    	for (Page p: pageMap.values()) {
+//    		if (p.items.containsKey(keyString)) {
+//    			return p.items.get(keyString).toCharArray();
+//    		}
+//    	}
+//
+//    	// read from disk until found
+//    	for (int i = 0; i <= lastPageId; i++) {
+//    		if (!pageMap.keySet().contains(i)) {
+//    			Page p = addPageToMemory(i);
+//    			if (p.items.containsKey(keyString)) return p.items.get(keyString).toCharArray();
+//    		}
+//    	}
+//    	
+//    	return null;
     }
     
     // pull a page into main memory
@@ -170,7 +203,8 @@ public class SimpleKV implements KeyValue {
         @Override
         public KVPair next() {
             String nextKey = ksIterator.next();
-            return new KVPair(nextKey.toCharArray(), map.get(nextKey).toCharArray());
+            //return new KVPair(nextKey.toCharArray(), map.get(nextKey).toCharArray());
+            return null;
         }
 
         @Override
@@ -199,6 +233,10 @@ public class SimpleKV implements KeyValue {
     @Override
     public void commit() {
     	flushDirtyPages();
+    }
+    
+    private void index(String key, int id) {
+    	map.put(key, Integer.valueOf(id));
     }
 
 }
