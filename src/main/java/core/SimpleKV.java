@@ -6,8 +6,8 @@ import java.io.RandomAccessFile;
 import java.util.*;
 
 public class SimpleKV implements KeyValue {
-	public static final int MEMORY_LIMIT = 500000000; // in bytes, slightly under 500MB for safety
-	public static final int PAGE_SIZE = 1000000; // page size in bytes
+	public static final int MEMORY_LIMIT = 400000000; // in bytes, slightly under 500MB for safety
+	public static final int PAGE_SIZE = 10000000; // page size in bytes
 	public static final int PAGE_PADDING = 1000; // extra space in pages for safety
 	public static int lastPageId = 0; // used to generate new page ids
 	public static File file;
@@ -15,6 +15,9 @@ public class SimpleKV implements KeyValue {
 	private TreeMap<String,Integer> map;
 	private HashMap<Integer, Page> pageMap;
 	private HashSet<Page> dirtyPages;
+	private HashSet<String> seenKeys = new HashSet<>();
+	private int seenKeyBytes = 0;
+	private File keyFile;
 	
     public SimpleKV() {
     	this.map = new TreeMap<>();
@@ -25,8 +28,10 @@ public class SimpleKV implements KeyValue {
     @Override
     public SimpleKV initAndMakeStore(String path) {
     	file = new File(path);
+    	keyFile = new File(path + ".seen.keys");
     	try {
 			file.createNewFile();
+//			keyFile.createNewFile();
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to make file: " + e.getMessage());
 		}
@@ -36,13 +41,16 @@ public class SimpleKV implements KeyValue {
     // WARNING!!! use only in testing, will wipe the DB file
     public void reset() {
     	if (file != null) file.delete();
-    	lastPageId = 0;
+    	if (keyFile != null) keyFile.delete();
+    	crash();
     }
     
     // clears main memory. used in testing to simulate a crash
     public void crash() {
     	pageMap = new HashMap<>();
+    	seenKeys = new HashSet<>();
     	lastPageId = 0;
+    	seenKeyBytes = 0;
     }
 
     @Override
@@ -82,6 +90,8 @@ public class SimpleKV implements KeyValue {
     		dirtyPages.add(p);
     		index(keyString, p.id);
     	}
+    	seenKeys.add(keyString);
+    	seenKeyBytes += keyString.length();
     	
 //    	// see if our key is already on one of the pages in cache
 //    	for (Page p: pageMap.values()) {
@@ -166,7 +176,7 @@ public class SimpleKV implements KeyValue {
     
     // evict a page, if necessary
     public void checkAndEvictPage() throws Exception {
-    	if ((pageMap.size() + 1) * PAGE_SIZE > MEMORY_LIMIT) { // only evict if pages will exceed MEMORY_LIMIT
+    	if (((pageMap.size() + 1) * PAGE_SIZE + seenKeyBytes) > MEMORY_LIMIT) { // only evict if pages will exceed MEMORY_LIMIT
 //    		Object[] pages = pageMap.values().toArray();
 //    		int i = 0;
 //    		while (i < pageMap.size() - 1 && ((Page) pages[i]).isDirty) i++; // only evict clean

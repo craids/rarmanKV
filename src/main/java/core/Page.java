@@ -46,13 +46,13 @@ public class Page {
 			numItems--;
 			String oldVal = items.get(key);
 			 // assume 1 16bit string character = 1 char = 2 bytes
-			numBytes -= key.length() * 2;
-			numBytes -= oldVal.length() * 2;
+			numBytes -= key.length();
+			numBytes -= oldVal.length();
 		}
 		numItems++;
 		items.put(key, val);
-		numBytes += key.length() * 2;
-		numBytes += val.length() * 2;
+		numBytes += key.length();
+		numBytes += val.length();
 	}
 
 	public boolean hasSpace(int toInsert) {
